@@ -9,6 +9,8 @@ __pycache__/
 *$py.class
 .virtualenvs
 *.egg-info/
+*~
+dist/
 
 # Singer JSON files
 properties.json
