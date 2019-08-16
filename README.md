@@ -107,3 +107,9 @@ You need to defines which columns have to be transformed by which method and in 
   nosetests --where=tests
 ```
 
+## License
+
+Apache License Version 2.0
+
+See [LICENSE](LICENSE) to see the full text.
+

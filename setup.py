@@ -8,7 +8,10 @@ setup(name='pipelinewise-transform-field',
       description='Singer.io simple field transformator between taps and targets - PipelineWise compatible',
       author="TransferWise",
       url='https://github.com/transferwise/pipelinewise-transform-field',
-      classifiers=['Programming Language :: Python :: 3 :: Only'],
+      classifiers=[
+          'License :: OSI Approved :: Apache Software License',
+          'Programming Language :: Python :: 3 :: Only'
+      ],
       py_modules=['transform_field'],
       install_requires=[
           'singer-python==5.2.0',
