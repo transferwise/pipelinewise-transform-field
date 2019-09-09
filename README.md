@@ -10,7 +10,7 @@ This is a [PipelineWise](https://transferwise.github.io/pipelinewise) compatible
 
 ## How to use it
 
-The recommended method of running this component is to use it from [PipelineWise](https://transferwise.github.io/pipelinewise). When running it from PipelineWise you don't need to configure this tap with JSON files and most of things are automated. Please check the related documentation at [Transformations](https://transferwise.github.io/pipelinewise/connectors/user_guide/transformations.html)
+The recommended method of running this component is to use it from [PipelineWise](https://transferwise.github.io/pipelinewise). When running it from PipelineWise you don't need to configure this tap with JSON files and most of things are automated. Please check the related documentation at [Transformations](https://transferwise.github.io/pipelinewise/user_guide/transformations.html)
 
 If you want to run this [Singer](https://singer.io) compatible component independently please read further.
 
