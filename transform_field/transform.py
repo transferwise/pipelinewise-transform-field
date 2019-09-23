@@ -74,6 +74,9 @@ def do_transform(record, field, trans_type, when=None):
             # Transforms any number to zero
             elif trans_type == "MASK-NUMBER":
                 return 0
+            # Transforms any value to "hidden"
+            elif trans_type == "MASK-HIDDEN":
+                return 'hidden'            
             # Return the original value if cannot find transformation type
             else:
                 return value

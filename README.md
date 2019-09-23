@@ -90,6 +90,7 @@ You need to defines which columns have to be transformed by which method and in 
 * **HASH-SKIP-FIRST-n**: Transforms string input to hash skipping first n characters, e.g. HASH-SKIP-FIRST-2
 * **MASK-DATA**: Transforms any date to stg
 * **MASK-NUMBER**: Transforms any number to zero
+* **MASK-HIDDEN**: Transforms any value to 'hidden'
 
 ### To run tests:
 
