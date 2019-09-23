@@ -61,7 +61,7 @@ class TestUnit(unittest.TestCase):
     def test_mask_hidden(self):
         """Test MASK-HIDDEN transformation"""
         self.assertEquals(
-            transform_field.transform.do_transform({"col_1":"abakadabra123"}, "col_1", "MASK-NUMBER"),
+            transform_field.transform.do_transform({"col_1":"abakadabra123"}, "col_1", "MASK-HIDDEN"),
             'hidden'
         )
 
