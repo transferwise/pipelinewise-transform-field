@@ -75,7 +75,8 @@ class TestEndToEnd(Base):
                 {'column': 'column_9', 'equals': 200 },
                 {'column': 'column_10', 'regex_match': 'sensitive' },
               ]
-          }
+          },
+          { 'tap_stream_name': 'dummy_stream', 'field_id': 'column_12', 'type': 'MASK-HIDDEN' }
         ]}
 
         transform_field = TransformField(trans_config)
@@ -112,6 +113,7 @@ class TestEndToEnd(Base):
                   'column_9': {'inclusion':'available', 'type': ['null', 'integer']},
                   'column_10': {'inclusion':'available', 'maxLength': 64, 'type': ['null', 'string']},
                   'column_11': {'inclusion':'available', 'maxLength': 64, 'type': ['null', 'string']},
+                  'column_12': {'inclusion':'available', 'maxLength': 64, 'type': ['null', 'string']},
                 },
                 'type': 'object'
               },
@@ -140,6 +142,8 @@ class TestEndToEnd(Base):
                 # Conditional transformation
                 'column_10': 'column_11 is safe to keep',
                 'column_11': 'My name is John',
+
+                'column_12': 'hidden',
               },
               'version': 1,
               'time_extracted': '2019-01-31T15:51:50.215998Z'
@@ -167,6 +171,8 @@ class TestEndToEnd(Base):
                 # Conditional transformation
                 'column_10': 'column_11 has sensitive data. Needs to transform to NULL',
                 'column_11': None,                  # Should be SET-NULL transformed
+
+                'column_12': 'hidden',
               },
               'version': 1,
               'time_extracted': '2019-01-31T15:51:50.215998Z'
