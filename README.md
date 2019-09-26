@@ -40,9 +40,9 @@ or
 
 Put it between a tap and a target with simple unix pipes:
 
-`some-singer-tap | transform-field --transformations [transformations.json] | some-singer-target`
+`some-singer-tap | transform-field --config [config.json] | some-singer-target`
 
-It's reading incoming messages from STDIN and using `transformations.json` to transform incoming RECORD messages.
+It's reading incoming messages from STDIN and using `config.json` to transform incoming RECORD messages.
 
 **Note**: To avoid version conflicts run `tap`, `transform` and `targets` in separate virtual environments.
 
@@ -50,10 +50,7 @@ It's reading incoming messages from STDIN and using `transformations.json` to tr
 
 You need to defines which columns have to be transformed by which method and in which condition the transformation needs to be applied.
 
-**Configuring directly from JSON**:
-
-(Tip: PipelineWise generating this for you from a more readable YAML format)
-
+**Example config.json**:
 
   ```json
   {
@@ -82,6 +79,8 @@ You need to defines which columns have to be transformed by which method and in 
     ]
   }
   ```
+
+(Tip: PipelineWise generating this for you from a more readable YAML format)
 
 ### Transformation types
 
