@@ -21,6 +21,7 @@ TIMINGS = Timings(LOGGER)
 DEFAULT_MAX_BATCH_BYTES = 4000000
 DEFAULT_MAX_BATCH_RECORDS = 20000
 DEFAULT_BATCH_DELAY_SECONDS = 300.0
+VALIDATE_RECORDS = False
 
 StreamMeta = namedtuple('StreamMeta', ['schema', 'key_properties', 'bookmark_properties'])
 TransMeta = namedtuple('TransMeta', ['field_id', 'type', 'when'])
@@ -54,6 +55,7 @@ class TransformField(object):
         # TODO: Make it configurable
         self.max_batch_bytes = DEFAULT_MAX_BATCH_BYTES
         self.max_batch_records = DEFAULT_MAX_BATCH_RECORDS
+        self.validate_records = VALIDATE_RECORDS
 
         # Minimum frequency to send a batch, used with self.time_last_batch_sent
         self.batch_delay_seconds = DEFAULT_BATCH_DELAY_SECONDS
@@ -122,29 +124,30 @@ class TransformField(object):
                             else:
                                 message.record[trans.field_id] = transformed
 
-                    # Validate the transformed columns
-                    data = float_to_decimal(message.record)
-                    try:
-                        validator.validate(data)
-                        if key_properties:
-                            for k in key_properties:
-                                if k not in data:
-                                    raise TransformFieldException(
-                                        'Message {} is missing key property {}'.format(
-                                            i, k))
+                    if self.validate_records:
+                        # Validate the transformed columns
+                        data = float_to_decimal(message.record)
+                        try:
+                            validator.validate(data)
+                            if key_properties:
+                                for k in key_properties:
+                                    if k not in data:
+                                        raise TransformFieldException(
+                                            'Message {} is missing key property {}'.format(
+                                                i, k))
 
-                        # Write the transformed message
-                        singer.write_message(message)
+                        except Exception as e:
+                            if type(e).__name__ == "InvalidOperation":
+                                raise TransformFieldException(
+                                    "Record does not pass schema validation. RECORD: {}\n'multipleOf' validations that allows long precisions are not supported (i.e. with 15 digits or more). Try removing 'multipleOf' methods from JSON schema.\n{}"
+                                    .format(message.record, e)
+                                )
+                            else:
+                                raise TransformFieldException(
+                                    "Record does not pass schema validation. RECORD: {}\n{}".format(message.record, e))
 
-                    except Exception as e:
-                        if type(e).__name__ == "InvalidOperation":
-                            raise TransformFieldException(
-                                "Record does not pass schema validation. RECORD: {}\n'multipleOf' validations that allows long precisions are not supported (i.e. with 15 digits or more). Try removing 'multipleOf' methods from JSON schema.\n{}"
-                                .format(message.record, e)
-                            )
-                        else:
-                            raise TransformFieldException(
-                                "Record does not pass schema validation. RECORD: {}\n{}".format(message.record, e))
+                    # Write the transformed message
+                    singer.write_message(message)
 
             LOGGER.debug("Batch is valid with {} messages".format(len(messages)))
 
