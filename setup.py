@@ -1,4 +1,3 @@
-
 #!/usr/bin/env python
 
 from setuptools import setup
@@ -14,7 +13,7 @@ setup(name='pipelinewise-transform-field',
       ],
       py_modules=['transform_field'],
       install_requires=[
-          'singer-python==5.2.0',
+          'pipelinewise-singer-python==1.*',
       ],
       entry_points='''
           [console_scripts]

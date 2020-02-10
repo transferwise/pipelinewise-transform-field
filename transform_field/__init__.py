@@ -1,14 +1,12 @@
 #!/usr/bin/env python3
 
-import argparse
 import io
 import sys
-import json
 import time
 
 from collections import namedtuple
 from decimal import Decimal
-from jsonschema import ValidationError, Draft4Validator, FormatChecker
+from jsonschema import Draft4Validator, FormatChecker
 import singer
 from singer import utils
 
@@ -16,7 +14,7 @@ import transform_field.transform
 
 from transform_field.timings import Timings
 
-LOGGER = singer.get_logger()
+LOGGER = singer.get_logger('transform_field')
 TIMINGS = Timings(LOGGER)
 DEFAULT_MAX_BATCH_BYTES = 4000000
 DEFAULT_MAX_BATCH_RECORDS = 20000
