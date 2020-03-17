@@ -107,20 +107,7 @@ class TransformField(object):
 
                         if trans.field_id in message.record:
                             transformed = transform.do_transform(message.record, trans.field_id, trans.type, trans.when)
-
-                            # Truncate to transformed value to the max allowed length if required
-                            if transformed is not None:
-                                max_length = False
-                                if trans.field_id in schema['properties']:
-                                    if 'maxLength' in schema['properties'][trans.field_id]:
-                                        max_length = schema['properties'][trans.field_id]['maxLength']
-
-                                if max_length:
-                                    message.record[trans.field_id] = transformed[:max_length]
-                                else:
-                                    message.record[trans.field_id] = transformed
-                            else:
-                                message.record[trans.field_id] = transformed
+                            message.record[trans.field_id] = transformed
 
                     if self.validate_records:
                         # Validate the transformed columns
