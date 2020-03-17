@@ -20,6 +20,11 @@ setup(name='pipelinewise-transform-field',
       install_requires=[
           'pipelinewise-singer-python==1.*',
       ],
+      extras_require={
+        'test': [
+            'nose==1.3'
+        ]
+      },
       entry_points='''
           [console_scripts]
           transform-field=transform_field:main
