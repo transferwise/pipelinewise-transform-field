@@ -129,15 +129,15 @@ class TestEndToEnd(Base):
               'stream': 'dummy_stream',
               'record': {
                 'c_pk': 1,
-                'column_1': None,                   # should be SET-NULL transformed
-                'column_2': 'c584d22683f3e523',     # Should be HASH transformed
-                'column_3': 'Ducd571661edac8d',     # Should be HASH-SKIP-2 tranformed
-                'column_4': 'Dum1fe9627d907b0',     # Should be HASH-SKIP-3 tranformed
-                'column_5': '2019-01-01T12:12:45',  # Should be MASK-DATE transformed
-                'column_6': 0,                      # Should be MASK-NUMBER transformed
-                'column_7': 'Dummy row 1',          # Should be the originl value - Unknown transformation type
-                'column_8': '2019-12-21T12:12:45',  # Should be the original date-time value
-                'column_9': 100,                    # Should be the original number value
+                'column_1': None,                                                                   # should be SET-NULL transformed
+                'column_2': 'c584d22683f3e523df9a7396e7939c0da16af89976b613adfe4bcd4c9c526f32',     # Should be HASH transformed
+                'column_3': 'Ducd571661edac8d47669a60b964c7124b228b69862cd21d548794af41c139a8e3',   # Should be HASH-SKIP-2 tranformed
+                'column_4': 'Dum1fe9627d907b0a37a31b270cc0f660a7388eb470a2558e839e0c1f601aedfaa7',  # Should be HASH-SKIP-3 tranformed
+                'column_5': '2019-01-01T12:12:45',                                                  # Should be MASK-DATE transformed
+                'column_6': 0,                                                                      # Should be MASK-NUMBER transformed
+                'column_7': 'Dummy row 1',                                                          # Should be the originl value - Unknown transformation type
+                'column_8': '2019-12-21T12:12:45',                                                  # Should be the original date-time value
+                'column_9': 100,                                                                    # Should be the original number value
 
                 # Conditional transformation
                 'column_10': 'column_11 is safe to keep',
@@ -158,15 +158,15 @@ class TestEndToEnd(Base):
               'stream': 'dummy_stream',
               'record': {
                 'c_pk': 2,
-                'column_1': None,                   # should be SET-NULL transformed
-                'column_2': '12c7ca803f4ae404',     # Should be HASH tranformed
-                'column_3': 'Du7c2717bbc7489d',     # Should be HASH-SKIP-3 tranformed
-                'column_4': 'Dum5b2be872199a8',     # Should be HASH-SKIP-3 tranformed
-                'column_5': '2019-01-01T13:12:45',  # Should be MASK-DATE transformed
-                'column_6': 0,                      # Should be MASK-NUMBER transformed
-                'column_7': 'Dummy row 2',          # Should be the origian value - Unknown transformation type
-                'column_8': '2019-12-21T13:12:45',  # Should be the original date-time value
-                'column_9': 200,                    # Should be the original number value
+                'column_1': None,                                                                   # should be SET-NULL transformed
+                'column_2': '12c7ca803f4ae4044b8c3a6aa7dbaf9fe73a25e12f2258dbf8a832961ac6abab',     # Should be HASH tranformed
+                'column_3': 'Du7c2717bbc7489d36cea73c8519c815ce962142a5b32db413abe0bce7f58d943f',   # Should be HASH-SKIP-3 tranformed
+                'column_4': 'Dum5b2be872199a84657234144caec9106483a522edd36783c7a12439bcf3853c56',  # Should be HASH-SKIP-3 tranformed
+                'column_5': '2019-01-01T13:12:45',                                                  # Should be MASK-DATE transformed
+                'column_6': 0,                                                                      # Should be MASK-NUMBER transformed
+                'column_7': 'Dummy row 2',                                                          # Should be the origian value - Unknown transformation type
+                'column_8': '2019-12-21T13:12:45',                                                  # Should be the original date-time value
+                'column_9': 200,                                                                    # Should be the original number value
 
                 # Conditional transformation
                 'column_10': 'column_11 has sensitive data. Needs to transform to NULL',

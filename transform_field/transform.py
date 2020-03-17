@@ -62,7 +62,7 @@ def do_transform(record, field, trans_type, when=None):
             # Transforms any input to NULL
             if trans_type == "SET-NULL":
                 return None
-            # Transfroms string input to hash
+            # Transforms string input to hash
             elif trans_type == "HASH":
                 return hashlib.sha256(value.encode('utf-8')).hexdigest()
             # Transforms string input to hash skipping first n characters, e.g. HASH-SKIP-FIRST-2
