@@ -24,7 +24,7 @@ VALIDATE_RECORDS = False
 StreamMeta = namedtuple(
     'StreamMeta', ['schema', 'key_properties', 'bookmark_properties'])
 TransMeta = namedtuple(
-    'TransMeta', ['field_id', 'type', 'when', 'nested_field', 'object_type'])
+    'TransMeta', ['field_id', 'type', 'when', 'nested_field_id'])
 
 REQUIRED_CONFIG_KEYS = [
     "transformations"
@@ -86,7 +86,7 @@ class TransformField(object):
                 trans["field_id"],
                 trans["type"],
                 trans.get('when'),
-                trans.get('nested_field')
+                trans.get('nested_field_id', None)
             ))
 
     def flush(self):
@@ -113,20 +113,18 @@ class TransformField(object):
 
                         if trans.field_id in message.record:
 
-                            if trans.nested_field:
-
-                                nested_record = message.record.get(
-                                    trans.field_id)
+                            print(trans)
+                            if trans.nested_field_id:
 
                                 # Handle nested dicts and lists
                                 transformed = transform.do_nested_transform(
-                                    record=nested_record,
-                                    field=trans.nested_field,
-                                    nested_field=trans.type,
-                                    trans_type=trans.when,
+                                    record=message.record,
+                                    field=trans.field_id,
+                                    nested_field=trans.nested_field_id,
+                                    trans_type=trans.type,
                                     when=trans.when)
 
-                                message.record[trans.field_id]
+                                message.record[trans.field_id] = transformed
 
                             else:
                                 transformed = transform.do_transform(

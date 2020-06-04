@@ -49,6 +49,18 @@ def is_transform_required(record, when):
     return transform_required
 
 
+def extract_email_domain(string):
+    if not isinstance(string, str):
+        raise ValueError(f'{string} is not a string')
+
+    split_string = string.split('@')
+    if len(split_string) > 1:
+        # Extract last entry
+        return split_string[-1]
+
+    return string
+
+
 def do_transform(record, field, trans_type, when=None):
     """Transform a value by a certain transformation type.
     Optionally can set conditional criterias based on other
@@ -77,6 +89,9 @@ def do_transform(record, field, trans_type, when=None):
             # Transforms any value to "hidden"
             elif trans_type == "MASK-HIDDEN":
                 return 'hidden'
+            # Transforms any value to "hidden"
+            elif trans_type == 'EMAIL-DOMAIN-EXTRACTION':
+                return extract_email_domain(value)
             # Return the original value if cannot find transformation type
             else:
                 return value
@@ -110,6 +125,7 @@ def do_nested_transform(record,
                                            nested_field,
                                            trans_type,
                                            when=when)
+                print('***', transformed)
                 item[nested_field] = transformed
                 new_record.append(item)
 
