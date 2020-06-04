@@ -76,7 +76,7 @@ def do_transform(record, field, trans_type, when=None):
                 return 0
             # Transforms any value to "hidden"
             elif trans_type == "MASK-HIDDEN":
-                return 'hidden'            
+                return 'hidden'
             # Return the original value if cannot find transformation type
             else:
                 return value
@@ -88,4 +88,44 @@ def do_transform(record, field, trans_type, when=None):
     # Return the original value if cannot transform
     except Exception:
         return value
-    
+
+
+def do_nested_transform(record,
+                        field,
+                        nested_field,
+                        trans_type,
+                        when=None):
+    # """Transform a value by a certain transformation type.
+    # Optionally can set conditional criterias based on other
+    # values of the record"""
+    try:
+
+        nested_record = record.get(field)
+
+        if isinstance(nested_record, list):
+
+            new_record = []
+            for item in nested_record:
+                transformed = do_transform(item,
+                                           nested_field,
+                                           trans_type,
+                                           when=when)
+                item[nested_field] = transformed
+                new_record.append(item)
+
+            return new_record
+
+        elif isinstance(nested_record, dict):
+            transformed = do_transform(nested_record,
+                                       nested_field,
+                                       trans_type,
+                                       when=when)
+            item[nested_field] = transformed
+            return item
+
+        else:
+            raise Exception(f'unnesting of {record} failed')
+
+    # Return the original value if cannot transform
+    except Exception:
+        return nested_record

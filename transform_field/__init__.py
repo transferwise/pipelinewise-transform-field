@@ -10,7 +10,7 @@ from jsonschema import Draft4Validator, FormatChecker
 import singer
 from singer import utils
 
-import transform_field.transform
+from transform_field import transform
 
 from transform_field.timings import Timings
 
@@ -21,12 +21,15 @@ DEFAULT_MAX_BATCH_RECORDS = 20000
 DEFAULT_BATCH_DELAY_SECONDS = 300.0
 VALIDATE_RECORDS = False
 
-StreamMeta = namedtuple('StreamMeta', ['schema', 'key_properties', 'bookmark_properties'])
-TransMeta = namedtuple('TransMeta', ['field_id', 'type', 'when'])
+StreamMeta = namedtuple(
+    'StreamMeta', ['schema', 'key_properties', 'bookmark_properties'])
+TransMeta = namedtuple(
+    'TransMeta', ['field_id', 'type', 'when', 'nested_field', 'object_type'])
 
 REQUIRED_CONFIG_KEYS = [
     "transformations"
 ]
+
 
 def float_to_decimal(value):
     '''Walk the given data structure and turn all instances of float into
@@ -39,9 +42,11 @@ def float_to_decimal(value):
         return {k: float_to_decimal(v) for k, v in value.items()}
     return value
 
+
 class TransformFieldException(Exception):
     '''A known exception for which we don't need to pring a stack trace'''
     pass
+
 
 class TransformField(object):
     def __init__(self, trans_config):
@@ -76,11 +81,12 @@ class TransformField(object):
             stream = trans["tap_stream_name"]
             if stream not in self.trans_meta:
                 self.trans_meta[stream] = []
-            
+
             self.trans_meta[stream].append(TransMeta(
                 trans["field_id"],
                 trans["type"],
-                trans.get('when')
+                trans.get('when'),
+                trans.get('nested_field')
             ))
 
     def flush(self):
@@ -106,8 +112,30 @@ class TransformField(object):
                     for trans in trans_meta:
 
                         if trans.field_id in message.record:
-                            transformed = transform.do_transform(message.record, trans.field_id, trans.type, trans.when)
-                            message.record[trans.field_id] = transformed
+
+                            if trans.nested_field:
+
+                                nested_record = message.record.get(
+                                    trans.field_id)
+
+                                # Handle nested dicts and lists
+                                transformed = transform.do_nested_transform(
+                                    record=nested_record,
+                                    field=trans.nested_field,
+                                    nested_field=trans.type,
+                                    trans_type=trans.when,
+                                    when=trans.when)
+
+                                message.record[trans.field_id]
+
+                            else:
+                                transformed = transform.do_transform(
+                                    record=message.record,
+                                    field=trans.field_id,
+                                    trans_type=trans.type,
+                                    when=trans.when)
+
+                                message.record[trans.field_id] = transformed
 
                     if self.validate_records:
                         # Validate the transformed columns
@@ -134,7 +162,8 @@ class TransformField(object):
                     # Write the transformed message
                     singer.write_message(message)
 
-            LOGGER.debug("Batch is valid with {} messages".format(len(messages)))
+            LOGGER.debug(
+                "Batch is valid with {} messages".format(len(messages)))
 
             # Update stats
             self.time_last_batch_sent = time.time()
@@ -149,14 +178,15 @@ class TransformField(object):
 
     def handle_line(self, line):
         '''Takes a raw line from stdin and transforms it'''
-        try :
+        try:
             message = singer.parse_message(line)
 
             if not message:
                 raise TransformFieldException('Unknown message type')
         except Exception as exc:
-            raise TransformFieldException('Failed to process incoming message: {}\n{}'.format(line, exc))
-        
+            raise TransformFieldException(
+                'Failed to process incoming message: {}\n{}'.format(line, exc))
+
         LOGGER.debug(message)
 
         # If we got a Schema, set the schema and key properties for this
@@ -164,7 +194,7 @@ class TransformField(object):
         # different
         if isinstance(message, singer.SchemaMessage):
             self.flush()
-        
+
             self.stream_meta[message.stream] = StreamMeta(
                 message.schema,
                 message.key_properties,
@@ -189,7 +219,8 @@ class TransformField(object):
             enough_messages = num_messages >= self.max_batch_records
             enough_time = num_seconds >= self.batch_delay_seconds
             if enough_bytes or enough_messages or enough_time:
-                LOGGER.debug('Flushing %d bytes, %d messages, after %.2f seconds', num_bytes, num_messages, num_seconds)
+                LOGGER.debug('Flushing %d bytes, %d messages, after %.2f seconds',
+                             num_bytes, num_messages, num_seconds)
                 self.flush()
 
         elif isinstance(message, singer.StateMessage):
@@ -201,6 +232,7 @@ class TransformField(object):
             self.handle_line(line)
         self.flush()
 
+
 def main_impl():
     args = utils.parse_args(REQUIRED_CONFIG_KEYS)
     trans_config = {'transformations': args.config['transformations']}
@@ -208,6 +240,7 @@ def main_impl():
     reader = io.TextIOWrapper(sys.stdin.buffer, encoding='utf-8')
     TransformField(trans_config).consume(reader)
     LOGGER.info("Exiting normally")
+
 
 def main():
     '''Main entry point'''
@@ -221,6 +254,7 @@ def main():
     except Exception as exc:
         LOGGER.critical(exc)
         raise exc
+
 
 if __name__ == '__main__':
     main()
