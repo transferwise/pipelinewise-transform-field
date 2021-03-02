@@ -1,4 +1,4 @@
-# Transformation types and record properties types
+# [WIP] Transformation types and record properties types 
 
 # Problem
 
@@ -58,7 +58,11 @@ type.
 ## implementation:
 
 Add a flag `--validate` to `pipelinewise-transform-field` to validate a transformation config file 
-using the rules above. The connector would use the column types in the schema message to do the validation:
+using the rules above:
+
+`transform-field --validate --config /path/to/config.json --catalog /path/to/propeties.json`
+
+The connector would use the column types in the schema message to do the validation:
 
 ```
 // This is pseudo code
