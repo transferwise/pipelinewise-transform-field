@@ -57,8 +57,8 @@ type.
 
 ## implementation:
 
-Add a command `validate` to `pipelinewise-transform-field` to validate a transformation config file 
-using the rules above. The command would use the column types in the schema message to do the validation:
+Add a flag `--validate` to `pipelinewise-transform-field` to validate a transformation config file 
+using the rules above. The connector would use the column types in the schema message to do the validation:
 
 ```
 // This is pseudo code
@@ -82,7 +82,7 @@ for every transformation:
          else success
 ```
 
-Pipelinewise will then call this command as part of the post-import checks. Unfortunately, 
+Pipelinewise will then call this connector with the `--validate` flag as part of the post-import checks. Unfortunately, 
 given that we don't have access to the sources at PR time,  we can only know the column types after new configs are 
 deployed to production.
 
@@ -95,4 +95,4 @@ Separation of concerns:
 
 Convenience|Usability
 * Having the logic in the connector means any user who uses it outside PipelineWise will benefit from it by 
-  incorporating the `validate` command in their workflow without having to use Pipelinewise.
+  incorporating the validation in their workflow without having to use Pipelinewise.
