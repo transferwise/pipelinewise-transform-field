@@ -12,8 +12,6 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
-    env:
-      LOGGING_CONF_FILE: '$(pwd)/sample_logging'
     strategy:
       fail-fast: true
       matrix:
@@ -28,8 +26,10 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: print env
-        run: echo $LOGGING_CONF_FILE
+      - name: set LOGGING_CONF_FILE env
+        run: |
+          export LOGGING_CONF_FILE=$(pwd)/sample_logging.conf
+          echo $LOGGING_CONF_FILE
 
       - name: Install dependencies
         run: |
