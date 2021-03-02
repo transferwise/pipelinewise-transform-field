@@ -7,22 +7,29 @@ with open("README.md", "r") as fh:
 
 setup(name='pipelinewise-transform-field',
       version='2.0.0',
-      description='Singer.io simple field transformator between taps and targets - PipelineWise compatible',
+      description='Singer.io simple field transformer between taps and targets - PipelineWise compatible',
       long_description=long_description,
       long_description_content_type='text/markdown',
-      author="TransferWise",
+      author="Wise",
       url='https://github.com/transferwise/pipelinewise-transform-field',
       classifiers=[
           'License :: OSI Approved :: Apache Software License',
-          'Programming Language :: Python :: 3 :: Only'
+          'Environment :: Console',
+          'Programming Language :: Python :: 3 :: Only',
+          'Programming Language :: Python :: 3.6',
+          'Programming Language :: Python :: 3.7',
+          'Programming Language :: Python :: 3.8'
       ],
       py_modules=['transform_field'],
       install_requires=[
+          'wheel==0.36.*',
           'pipelinewise-singer-python==1.*',
       ],
       extras_require={
         'test': [
-            'nose==1.3'
+            'pytest==6.2.*',
+            'pytest-cov==2.11.*',
+            'pylint==2.7.*',
         ]
       },
       entry_points='''
