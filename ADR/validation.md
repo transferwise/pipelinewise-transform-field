@@ -91,6 +91,10 @@ given that we don't have access to the sources at PR time,  we can only know the
 deployed to production.
 
 
+Also, given that columns could change types at load time, and if the new type is incompatible with the 
+transformation applied to it, it would cause the target to fail, so we can add validation at runtime too, ie while the 
+connector is receiving streams.
+
 ### Reasons for having the validation logic in transform-field connector
 
 Separation of concerns:
