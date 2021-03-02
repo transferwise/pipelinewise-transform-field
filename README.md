@@ -10,7 +10,8 @@ This is a [PipelineWise](https://transferwise.github.io/pipelinewise) compatible
 
 ## How to use it
 
-The recommended method of running this component is to use it from [PipelineWise](https://transferwise.github.io/pipelinewise). When running it from PipelineWise you don't need to configure this tap with JSON files and most of things are automated. Please check the related documentation at [Transformations](https://transferwise.github.io/pipelinewise/user_guide/transformations.html)
+The recommended method of running this component is to use it from [PipelineWise](https://transferwise.github.io/pipelinewise). When running it from PipelineWise you don't need to configure this tap with JSON files, and most of things are automated. 
+Please check the related documentation at [Transformations](https://transferwise.github.io/pipelinewise/user_guide/transformations.html)
 
 If you want to run this [Singer](https://singer.io) compatible component independently please read further.
 
@@ -32,7 +33,7 @@ or
 ```bash
   python3 -m venv venv
   . venv/bin/activate
-  pip install --upgrade pip
+  pip install --upgrade pip setuptools
   pip install .
 ```
 
@@ -48,7 +49,7 @@ It's reading incoming messages from STDIN and using `config.json` to transform i
 
 ### Configuration
 
-You need to defines which columns have to be transformed by which method and in which condition the transformation needs to be applied.
+You need to define which columns have to be transformed by which method and in which condition the transformation needs to be applied.
 
 **Example config.json**:
 
@@ -85,27 +86,55 @@ You need to defines which columns have to be transformed by which method and in 
 ### Transformation types
 
 * **SET-NULL**: Transforms any input to NULL
-* **HASH**: Transfroms string input to hash
+* **HASH**: Transforms string input to hash
 * **HASH-SKIP-FIRST-n**: Transforms string input to hash skipping first n characters, e.g. HASH-SKIP-FIRST-2
-* **MASK-DATA**: Transforms any date to stg
-* **MASK-NUMBER**: Transforms any number to zero
-* **MASK-HIDDEN**: Transforms any value to 'hidden'
+* **MASK-DATE**: Replaces the months and day parts of date columns to be always 1st of Jan
+* **MASK-NUMBER**: Transforms any numeric value to zero
+* **MASK-HIDDEN**: Transforms any string to 'hidden'
 
-### To run tests:
+### To check code style:
 
-1. Install python dependencies in a virtual env and run nose unit and integration tests
+1. Install python dependencies in a virtual env
 ```
   python3 -m venv venv
   . venv/bin/activate
-  pip install --upgrade pip
-  pip install .
-  pip install nose
+  pip install --upgrade pip setuptools
+  pip install .[test]
 ```
 
-1. To run tests:
+2. Run pylint
+```shell
+pylint transform_field
 ```
-  nosetests --where=tests
+
+### To run tests:
+
+1. Install python dependencies in a virtual env and run unit and integration tests
 ```
+  python3 -m venv venv
+  . venv/bin/activate
+  pip install --upgrade pip setuptools
+  pip install .[test]
+```
+
+2. Run tests:
+
+* Unit tests
+```
+  pytest -v tests/unit
+```
+
+* Integration tests
+```
+  pytest -v tests/integration
+```
+
+* All tests
+```
+  pytest -v tests
+```
+
+
 
 ## License
 

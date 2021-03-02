@@ -1,10 +1,6 @@
-#!/usr/bin/env python3
-
-import sys
 import hashlib
 import re
 
-from datetime import datetime
 from dateutil import parser
 
 
@@ -13,7 +9,7 @@ def is_transform_required(record, when):
     the defined conditions and the actual values in a record"""
     transform_required = False
 
-    # Check if conditional transformation matches criterias
+    # Check if conditional transformation matches criteria
     if when:
 
         # Evaluate every condition
@@ -23,7 +19,7 @@ def is_transform_required(record, when):
             cond_equals = condition.get('equals')
             cond_pattern = condition.get('regex_match')
 
-            # Exact condition
+            # Exact condition
             if cond_equals:
                 if column_value == cond_equals:
                     transform_required = True
@@ -51,7 +47,7 @@ def is_transform_required(record, when):
 
 def do_transform(record, field, trans_type, when=None):
     """Transform a value by a certain transformation type.
-    Optionally can set conditional criterias based on other
+    Optionally can set conditional criteria based on other
     values of the record"""
     try:
         value = record.get(field)
@@ -61,31 +57,40 @@ def do_transform(record, field, trans_type, when=None):
 
             # Transforms any input to NULL
             if trans_type == "SET-NULL":
-                return None
+                return_value = None
+
             # Transforms string input to hash
             elif trans_type == "HASH":
-                return hashlib.sha256(value.encode('utf-8')).hexdigest()
+                return_value = hashlib.sha256(value.encode('utf-8')).hexdigest()
+
             # Transforms string input to hash skipping first n characters, e.g. HASH-SKIP-FIRST-2
             elif 'HASH-SKIP-FIRST' in trans_type:
-                return value[:int(trans_type[-1])] + hashlib.sha256(value.encode('utf-8')[int(trans_type[-1]):]).hexdigest()
+                return_value = value[:int(trans_type[-1])] + \
+                               hashlib.sha256(value.encode('utf-8')[int(trans_type[-1]):]).hexdigest()
+
             # Transforms any date to stg
             elif trans_type == "MASK-DATE":
-                return parser.parse(value).replace(month=1, day=1).isoformat()
+                return_value = parser.parse(value).replace(month=1, day=1).isoformat()
+
             # Transforms any number to zero
             elif trans_type == "MASK-NUMBER":
-                return 0
+                return_value = 0
+
             # Transforms any value to "hidden"
             elif trans_type == "MASK-HIDDEN":
-                return 'hidden'            
+                return_value = 'hidden'
+
             # Return the original value if cannot find transformation type
+            # todo: is this the right behavior?
             else:
-                return value
+                return_value = value
 
         # Return the original value if cannot find transformation type
         else:
-            return value
+            return_value = value
+
+        return return_value
 
     # Return the original value if cannot transform
     except Exception:
         return value
-    
