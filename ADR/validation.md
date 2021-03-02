@@ -92,8 +92,8 @@ deployed to production.
 
 
 Also, given that columns could change types at load time, and if the new type is incompatible with the 
-transformation applied to it, it would cause the target to fail, so we can add validation at runtime too, ie while the 
-connector is receiving streams.
+transformation applied to it, it would cause the target to fail, so we can add validation at runtime too whenever it 
+has received a SCHEMA type stream.
 
 ### Reasons for having the validation logic in transform-field connector
 
