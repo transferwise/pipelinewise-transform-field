@@ -3,14 +3,14 @@
 import io
 import sys
 import time
+import singer
 
 from collections import namedtuple
 from decimal import Decimal
 from jsonschema import Draft4Validator, FormatChecker
-import singer
 from singer import utils
 
-import transform_field.transform
+import transform_field.transform as transform
 
 from transform_field.timings import Timings
 
@@ -28,9 +28,10 @@ REQUIRED_CONFIG_KEYS = [
     "transformations"
 ]
 
+
 def float_to_decimal(value):
-    '''Walk the given data structure and turn all instances of float into
-    double.'''
+    """Walk the given data structure and turn all instances of float into
+    double."""
     if isinstance(value, float):
         return Decimal(str(value))
     if isinstance(value, list):
@@ -39,11 +40,15 @@ def float_to_decimal(value):
         return {k: float_to_decimal(v) for k, v in value.items()}
     return value
 
-class TransformFieldException(Exception):
-    '''A known exception for which we don't need to pring a stack trace'''
-    pass
 
-class TransformField(object):
+class TransformFieldException(Exception):
+    """A known exception for which we don't need to bring a stack trace"""
+
+
+class TransformField:
+    """
+    Main Transformer class
+    """
     def __init__(self, trans_config):
         self.trans_config = trans_config
         self.messages = []
@@ -51,21 +56,18 @@ class TransformField(object):
         self.state = None
 
         # TODO: Make it configurable
-        self.max_batch_bytes = DEFAULT_MAX_BATCH_BYTES
-        self.max_batch_records = DEFAULT_MAX_BATCH_RECORDS
-        self.validate_records = VALIDATE_RECORDS
-
-        # Minimum frequency to send a batch, used with self.time_last_batch_sent
-        self.batch_delay_seconds = DEFAULT_BATCH_DELAY_SECONDS
+        # self.max_batch_bytes = DEFAULT_MAX_BATCH_BYTES
+        # self.max_batch_records = DEFAULT_MAX_BATCH_RECORDS
+        # self.validate_records = VALIDATE_RECORDS
+        #
+        # # Minimum frequency to send a batch, used with self.time_last_batch_sent
+        # self.batch_delay_seconds = DEFAULT_BATCH_DELAY_SECONDS
 
         # Time that the last batch was sent
         self.time_last_batch_sent = time.time()
 
         # Mapping from stream name to {'schema': ..., 'key_names': ..., 'bookmark_names': ... }
         self.stream_meta = {}
-
-        # Writer that we write state records to
-        self.state_writer = sys.stdout
 
         # Mapping from transformation stream to {'stream': [ 'field_id': ..., 'type': ... ] ... }
         self.trans_meta = {}
@@ -76,15 +78,17 @@ class TransformField(object):
             stream = trans["tap_stream_name"]
             if stream not in self.trans_meta:
                 self.trans_meta[stream] = []
-            
+
             self.trans_meta[stream].append(TransMeta(
                 trans["field_id"],
                 trans["type"],
                 trans.get('when')
             ))
 
+    # pylint: disable=too-many-nested-blocks,too-many-branches
+    # todo: simplify this method
     def flush(self):
-        '''Give batch to handlers to process'''
+        """Give batch to handlers to process"""
 
         if self.messages:
             stream = self.messages[0].stream
@@ -109,7 +113,7 @@ class TransformField(object):
                             transformed = transform.do_transform(message.record, trans.field_id, trans.type, trans.when)
                             message.record[trans.field_id] = transformed
 
-                    if self.validate_records:
+                    if VALIDATE_RECORDS:
                         # Validate the transformed columns
                         data = float_to_decimal(message.record)
                         try:
@@ -118,23 +122,25 @@ class TransformField(object):
                                 for k in key_properties:
                                     if k not in data:
                                         raise TransformFieldException(
-                                            'Message {} is missing key property {}'.format(
-                                                i, k))
+                                            'Message {} is missing key property {}'.format(i, k))
 
-                        except Exception as e:
-                            if type(e).__name__ == "InvalidOperation":
+                        except Exception as exc:
+                            if type(exc).__name__ == "InvalidOperation":
                                 raise TransformFieldException(
-                                    "Record does not pass schema validation. RECORD: {}\n'multipleOf' validations that allows long precisions are not supported (i.e. with 15 digits or more). Try removing 'multipleOf' methods from JSON schema.\n{}"
-                                    .format(message.record, e)
-                                )
-                            else:
-                                raise TransformFieldException(
-                                    "Record does not pass schema validation. RECORD: {}\n{}".format(message.record, e))
+                                    "Record does not pass schema validation. RECORD: {}\n'multipleOf' validations that "
+                                    "allows long precisions are not supported (i.e. with 15 digits or more). "
+                                    "Try removing 'multipleOf' methods from JSON schema.\n{}".format(message.record,
+                                                                                                     exc)
+                                ) from exc
+
+                            raise TransformFieldException(
+                                    "Record does not pass schema validation. RECORD: {}\n{}".format(message.record,
+                                                                                                    exc)) from exc
 
                     # Write the transformed message
                     singer.write_message(message)
 
-            LOGGER.debug("Batch is valid with {} messages".format(len(messages)))
+            LOGGER.debug("Batch is valid with %s messages", len(messages))
 
             # Update stats
             self.time_last_batch_sent = time.time()
@@ -148,15 +154,15 @@ class TransformField(object):
         TIMINGS.log_timings()
 
     def handle_line(self, line):
-        '''Takes a raw line from stdin and transforms it'''
-        try :
+        """Takes a raw line from stdin and transforms it"""
+        try:
             message = singer.parse_message(line)
 
             if not message:
                 raise TransformFieldException('Unknown message type')
         except Exception as exc:
-            raise TransformFieldException('Failed to process incoming message: {}\n{}'.format(line, exc))
-        
+            raise TransformFieldException('Failed to process incoming message: {}\n{}'.format(line, exc)) from exc
+
         LOGGER.debug(message)
 
         # If we got a Schema, set the schema and key properties for this
@@ -164,7 +170,7 @@ class TransformField(object):
         # different
         if isinstance(message, singer.SchemaMessage):
             self.flush()
-        
+
             self.stream_meta[message.stream] = StreamMeta(
                 message.schema,
                 message.key_properties,
@@ -185,9 +191,9 @@ class TransformField(object):
             num_messages = len(self.messages)
             num_seconds = time.time() - self.time_last_batch_sent
 
-            enough_bytes = num_bytes >= self.max_batch_bytes
-            enough_messages = num_messages >= self.max_batch_records
-            enough_time = num_seconds >= self.batch_delay_seconds
+            enough_bytes = num_bytes >= DEFAULT_MAX_BATCH_BYTES
+            enough_messages = num_messages >= DEFAULT_MAX_BATCH_RECORDS
+            enough_time = num_seconds >= DEFAULT_BATCH_DELAY_SECONDS
             if enough_bytes or enough_messages or enough_time:
                 LOGGER.debug('Flushing %d bytes, %d messages, after %.2f seconds', num_bytes, num_messages, num_seconds)
                 self.flush()
@@ -196,12 +202,16 @@ class TransformField(object):
             self.state = message.value
 
     def consume(self, reader):
-        '''Consume all the lines from the queue, flushing when done.'''
+        """Consume all the lines from the queue, flushing when done."""
         for line in reader:
             self.handle_line(line)
         self.flush()
 
+
 def main_impl():
+    """
+    Main implementation
+    """
     args = utils.parse_args(REQUIRED_CONFIG_KEYS)
     trans_config = {'transformations': args.config['transformations']}
 
@@ -209,11 +219,11 @@ def main_impl():
     TransformField(trans_config).consume(reader)
     LOGGER.info("Exiting normally")
 
+
 def main():
-    '''Main entry point'''
+    """Main entry point"""
     try:
         main_impl()
-
     except TransformFieldException as exc:
         for line in str(exc).splitlines():
             LOGGER.critical(line)
@@ -221,6 +231,7 @@ def main():
     except Exception as exc:
         LOGGER.critical(exc)
         raise exc
+
 
 if __name__ == '__main__':
     main()
