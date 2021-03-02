@@ -22,7 +22,7 @@ setup(name='pipelinewise-transform-field',
       ],
       extras_require={
         'test': [
-            'nose==1.3'
+            'nose==1.3.7'
         ]
       },
       entry_points='''
