@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+  workflow_dispatch:
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    env:
+      LOGGING_CONF_FILE: '$(pwd)/sample_logging'
+    strategy:
+      matrix:
+        python-version: [3.6, 3.7, 3.8]
+
+    steps:
+      - name: Checking out repo
+        uses: actions/checkout@v2
+
+      - name: Set up Python ${{ matrix.container[1] }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip setuptools
+          pip install .[test]
+
+      - name: Check if pylint is happy
+        run: pylint transform_field
+
+      - name: Run Unit Tests with min coverage of 40%
+        run: pytest --cov=transform_field --cov-fail-under=40 -v tests/unit
+
+      - name: Run Integration Tests
+        run: pytest -v tests/integration
