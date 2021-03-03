@@ -39,8 +39,8 @@ jobs:
       - name: Check if pylint is happy
         run: pylint transform_field
 
-      - name: Run Unit Tests with min coverage of 40%
-        run: pytest --cov=transform_field --cov-fail-under=40 -v tests/unit
+      - name: Run Unit Tests with min coverage of 60%
+        run: pytest --cov=transform_field --cov-fail-under=60 -v tests/unit
 
       - name: Run Integration Tests
         run: pytest -v tests/integration
