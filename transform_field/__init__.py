@@ -3,14 +3,20 @@
 import io
 import sys
 import time
+from enum import Enum, unique
+from typing import List, Dict
+
 import singer
 
 from collections import namedtuple
 from decimal import Decimal
 from jsonschema import Draft4Validator, FormatChecker
-from singer import utils
+from singer import Catalog
 
 import transform_field.transform as transform
+import transform_field.utils as utils
+from transform_field.errors import CatalogRequiredException, StreamNotFoundException, InvalidTransformationException, \
+    UnsupportedTransformationTypeException, NoStreamSchemaException
 
 from transform_field.timings import Timings
 
@@ -27,6 +33,19 @@ TransMeta = namedtuple('TransMeta', ['field_id', 'type', 'when'])
 REQUIRED_CONFIG_KEYS = [
     "transformations"
 ]
+
+
+@unique
+class TransformationTypes(Enum):
+    """
+    List of supported transformation types
+    """
+    SET_NULL = 'SET-NULL'
+    MASK_HIDDEN = 'MASK-HIDDEN'
+    MASK_DATE = 'MASK-DATE'
+    MASK_NUMBER = 'MASK-NUMBER'
+    HASH = 'HASH'
+    HASH_SKIP_FIRST = 'HASH-SKIP-FIRST'
 
 
 def float_to_decimal(value):
@@ -49,19 +68,12 @@ class TransformField:
     """
     Main Transformer class
     """
+
     def __init__(self, trans_config):
         self.trans_config = trans_config
         self.messages = []
         self.buffer_size_bytes = 0
         self.state = None
-
-        # TODO: Make it configurable
-        # self.max_batch_bytes = DEFAULT_MAX_BATCH_BYTES
-        # self.max_batch_records = DEFAULT_MAX_BATCH_RECORDS
-        # self.validate_records = VALIDATE_RECORDS
-        #
-        # # Minimum frequency to send a batch, used with self.time_last_batch_sent
-        # self.batch_delay_seconds = DEFAULT_BATCH_DELAY_SECONDS
 
         # Time that the last batch was sent
         self.time_last_batch_sent = time.time()
@@ -71,6 +83,7 @@ class TransformField:
 
         # Mapping from transformation stream to {'stream': [ 'field_id': ..., 'type': ... ] ... }
         self.trans_meta = {}
+
         for trans in trans_config["transformations"]:
             # Naming differences in stream ids:
             #  1. properties.json and transformation_json using 'tap_stream_id'
@@ -134,8 +147,8 @@ class TransformField:
                                 ) from exc
 
                             raise TransformFieldException(
-                                    "Record does not pass schema validation. RECORD: {}\n{}".format(message.record,
-                                                                                                    exc)) from exc
+                                "Record does not pass schema validation. RECORD: {}\n{}".format(message.record,
+                                                                                                exc)) from exc
 
                     # Write the transformed message
                     singer.write_message(message)
@@ -207,6 +220,63 @@ class TransformField:
             self.handle_line(line)
         self.flush()
 
+    def validate(self, catalog: Catalog):
+        """
+        Validate the transformations by checking if each transformation type is compatible with the column type
+        :param catalog: the catalog of streams with their json schema
+        """
+        LOGGER.info('Starting validation of transformations...')
+
+        if not catalog:
+            raise CatalogRequiredException('Catalog missing! please provide catalog to run validation.')
+
+        # get the schema of each stream
+        schemas = utils.get_stream_schemas(catalog)
+
+        for transformation in self.trans_config['transformations']:
+
+            stream = transformation['tap_stream_name']
+
+            # check if we even have schema for stream of this transformation
+            if stream not in schemas:
+                raise StreamNotFoundException(transformation['tap_stream_name'])
+
+            # check if we stream has not empty schema
+            if not schemas[stream]:
+                raise NoStreamSchemaException(transformation['tap_stream_name'])
+
+            trans_type = transformation['type']
+
+            field_id = transformation['field_id']
+            field_type = schemas[transformation['tap_stream_name']].properties[field_id].type
+            field_format = schemas[transformation['tap_stream_name']].properties[field_id].format
+
+            if trans_type in (TransformationTypes.HASH.value, TransformationTypes.MASK_HIDDEN.value) or \
+                    trans_type.startswith(TransformationTypes.HASH_SKIP_FIRST.value):
+                if not (field_type is not None and 'string' in field_type and not field_format):
+                    raise InvalidTransformationException(
+                        f'Cannot apply `{trans_type}` transformation type to a non-string field `'
+                        f'{field_id}` in stream `{stream}`')
+
+            elif trans_type == TransformationTypes.MASK_DATE.value:
+                if not (field_type is not None and 'string' in field_type and field_format in {'date-time', 'date'}):
+                    raise InvalidTransformationException(
+                        f'Cannot apply `{trans_type}` transformation type to a non-stringified date field'
+                        f' `{field_id}` in stream `{stream}`')
+
+            elif trans_type == TransformationTypes.MASK_NUMBER.value:
+                if not (field_type is not None and (
+                        'number' in field_type or 'integer' in field_type) and not field_format):
+                    raise InvalidTransformationException(
+                        f'Cannot apply `{trans_type}` transformation type to a non-numeric field '
+                        f'`{field_id}` in stream `{stream}`')
+
+            elif trans_type == TransformationTypes.SET_NULL.value:
+                LOGGER.info('Transformation type is %s, no need to do any validation.', trans_type)
+
+            else:
+                raise UnsupportedTransformationTypeException(trans_type)
+
 
 def main_impl():
     """
@@ -215,8 +285,14 @@ def main_impl():
     args = utils.parse_args(REQUIRED_CONFIG_KEYS)
     trans_config = {'transformations': args.config['transformations']}
 
-    reader = io.TextIOWrapper(sys.stdin.buffer, encoding='utf-8')
-    TransformField(trans_config).consume(reader)
+    instance = TransformField(trans_config)
+
+    if args.validate:
+        instance.validate(args.catalog)
+    else:
+        reader = io.TextIOWrapper(sys.stdin.buffer, encoding='utf-8')
+        instance.consume(reader)
+
     LOGGER.info("Exiting normally")
 
 
