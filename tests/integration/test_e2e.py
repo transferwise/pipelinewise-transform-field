@@ -1,10 +1,11 @@
+import subprocess
 import unittest
 import os
 import sys
 import json
 import tempfile
 
-from transform_field import TransformField, TransformFieldException
+from transform_field import TransformField, TransformFieldException, main
 
 
 class Base(unittest.TestCase):
@@ -43,7 +44,7 @@ class TestEndToEnd(Base):
 
     def test_invalid_json(self):
         """Receiving invalid JSONs should raise an exception"""
-        tap_lines = self.get_tap_input_messages('invalid-json.json')
+        tap_lines = self.get_tap_input_messages('invalid_messages.json')
         trans_config = {'transformations': []}
 
         transform_field = TransformField(trans_config)
@@ -179,3 +180,31 @@ class TestEndToEnd(Base):
                 'time_extracted': '2019-01-31T15:51:50.215998Z'
             }
         )
+
+    def test_validate_flag_with_invalid_transformations(self):
+        config = '{}/resources/invalid_config.json'.format(os.path.dirname(__file__))
+        catalog = '{}/resources/catalog.json'.format(os.path.dirname(__file__))
+
+        result = subprocess.run([
+            'transform-field',
+            '--validate',
+            '--config', config,
+            '--catalog', catalog,
+        ], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
+
+        with self.assertRaises(subprocess.CalledProcessError):
+            result.check_returncode()
+
+    def test_validate_flag_with_valid_transformations(self):
+
+        config = '{}/resources/valid_config.json'.format(os.path.dirname(__file__))
+        catalog = '{}/resources/catalog.json'.format(os.path.dirname(__file__))
+
+        result = subprocess.run([
+            'transform-field',
+            '--validate',
+            '--config', config,
+            '--catalog', catalog,
+        ], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
+
+        self.assertIsNone(result.check_returncode())
