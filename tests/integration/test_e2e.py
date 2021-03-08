@@ -5,7 +5,7 @@ import sys
 import json
 import tempfile
 
-from transform_field import TransformField, TransformFieldException, main
+from transform_field import TransformField, TransformFieldException, InvalidTransformationException
 
 
 class Base(unittest.TestCase):
@@ -63,7 +63,7 @@ class TestEndToEnd(Base):
             {'tap_stream_name': 'dummy_stream', 'field_id': 'column_4', 'type': 'HASH-SKIP-FIRST-3'},
             {'tap_stream_name': 'dummy_stream', 'field_id': 'column_5', 'type': 'MASK-DATE'},
             {'tap_stream_name': 'dummy_stream', 'field_id': 'column_6', 'type': 'MASK-NUMBER'},
-            {'tap_stream_name': 'dummy_stream', 'field_id': 'column_7', 'type': 'NOT-EXISTING-TRANSFORMATION-TYPE'},
+            # {'tap_stream_name': 'dummy_stream', 'field_id': 'column_7', 'type': 'NOT-EXISTING-TRANSFORMATION-TYPE'},
             {'tap_stream_name': 'dummy_stream', 'field_id': 'column_11', 'type': 'SET-NULL',
              'when': [
                  {'column': 'column_7', 'equals': "Dummy row 2"},
@@ -180,6 +180,21 @@ class TestEndToEnd(Base):
                 'time_extracted': '2019-01-31T15:51:50.215998Z'
             }
         )
+
+    def test_messages_with_changing_schema(self):
+        """Test a bunch of singer messages where a column in schema message
+        changes its type"""
+        tap_lines = self.get_tap_input_messages('streams_with_changing_schema.json')
+
+        # Set transformations on some columns
+        trans_config = {'transformations': [
+            {'tap_stream_name': 'dummy_stream', 'field_id': 'column_2', 'type': 'MASK-NUMBER'},
+        ]}
+
+        transform_field = TransformField(trans_config)
+
+        with self.assertRaises(InvalidTransformationException):
+            transform_field.consume(tap_lines)
 
     def test_validate_flag_with_invalid_transformations(self):
         config = '{}/resources/invalid_config.json'.format(os.path.dirname(__file__))
