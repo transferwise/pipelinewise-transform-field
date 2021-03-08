@@ -3,15 +3,15 @@
 import io
 import sys
 import time
-from enum import Enum, unique
-from typing import List, Dict
+from typing import Union, Dict
 
 import singer
 
+from enum import Enum, unique
 from collections import namedtuple
 from decimal import Decimal
-from jsonschema import Draft4Validator, FormatChecker
-from singer import Catalog
+from jsonschema import FormatChecker, Draft7Validator
+from singer import Catalog, SchemaMessage, Schema
 
 import transform_field.transform as transform
 import transform_field.utils as utils
@@ -111,7 +111,7 @@ class TransformField:
             messages = self.messages
             schema = float_to_decimal(stream_meta.schema)
             key_properties = stream_meta.key_properties
-            validator = Draft4Validator(schema, format_checker=FormatChecker())
+            validator = Draft7Validator(schema, format_checker=FormatChecker())
             trans_meta = []
             if stream in self.trans_meta:
                 trans_meta = self.trans_meta[stream]
@@ -189,6 +189,10 @@ class TransformField:
                 message.key_properties,
                 message.bookmark_properties)
 
+            # if schema message, do validation of transformations using the schema to detect any
+            # incompatibilities between the transformation and column types
+            self.__validate_stream_trans(message.stream, message.schema)
+
             # Write the transformed message
             singer.write_message(message)
 
@@ -233,43 +237,57 @@ class TransformField:
         # get the schema of each stream
         schemas = utils.get_stream_schemas(catalog)
 
-        for transformation in self.trans_config['transformations']:
+        for stream_id in self.trans_meta:
+            self.__validate_stream_trans(stream_id, schemas.get(stream_id))
 
-            stream = transformation['tap_stream_name']
+    def __validate_stream_trans(self, stream_id: str, stream_schema: Union[Schema, Dict]):
+        """
+        Validation of each stream's transformations
+        :param stream_id: ID of the stream
+        :param stream_schema: schema of the streams
+        """
 
-            # check if we even have schema for stream of this transformation
-            if stream not in schemas:
-                raise StreamNotFoundException(transformation['tap_stream_name'])
+        if stream_id not in self.trans_meta:
+            return
 
-            # check if we stream has not empty schema
-            if not schemas[stream]:
-                raise NoStreamSchemaException(transformation['tap_stream_name'])
+        # check if we even have schema for stream of this transformation
+        if stream_schema is None:
+            raise StreamNotFoundException(stream_id)
 
-            trans_type = transformation['type']
+        # check if we stream has not empty schema
+        if not stream_schema:
+            raise NoStreamSchemaException(stream_id)
 
-            field_id = transformation['field_id']
-            field_type = schemas[transformation['tap_stream_name']].properties[field_id].type
-            field_format = schemas[transformation['tap_stream_name']].properties[field_id].format
+        for transformation in self.trans_meta[stream_id]:
+            trans_type = transformation.type
+            field_id = transformation.field_id
+
+            if isinstance(stream_schema, Schema):
+                field_type = stream_schema.properties[field_id].type
+                field_format = stream_schema.properties[field_id].format
+            else:
+                field_type = stream_schema['properties'][field_id].get('type')
+                field_format = stream_schema['properties'][field_id].get('format')
 
             if trans_type in (TransformationTypes.HASH.value, TransformationTypes.MASK_HIDDEN.value) or \
                     trans_type.startswith(TransformationTypes.HASH_SKIP_FIRST.value):
                 if not (field_type is not None and 'string' in field_type and not field_format):
                     raise InvalidTransformationException(
                         f'Cannot apply `{trans_type}` transformation type to a non-string field `'
-                        f'{field_id}` in stream `{stream}`')
+                        f'{field_id}` in stream `{stream_id}`')
 
             elif trans_type == TransformationTypes.MASK_DATE.value:
                 if not (field_type is not None and 'string' in field_type and field_format in {'date-time', 'date'}):
                     raise InvalidTransformationException(
                         f'Cannot apply `{trans_type}` transformation type to a non-stringified date field'
-                        f' `{field_id}` in stream `{stream}`')
+                        f' `{field_id}` in stream `{stream_id}`')
 
             elif trans_type == TransformationTypes.MASK_NUMBER.value:
                 if not (field_type is not None and (
                         'number' in field_type or 'integer' in field_type) and not field_format):
                     raise InvalidTransformationException(
                         f'Cannot apply `{trans_type}` transformation type to a non-numeric field '
-                        f'`{field_id}` in stream `{stream}`')
+                        f'`{field_id}` in stream `{stream_id}`')
 
             elif trans_type == TransformationTypes.SET_NULL.value:
                 LOGGER.info('Transformation type is %s, no need to do any validation.', trans_type)
