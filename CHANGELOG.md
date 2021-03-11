@@ -1,7 +1,7 @@
 # CHANGELOG
 
 
-## 2.01.0 (2021-03-11)
+## 2.1.0 (2021-03-11)
 ### Addedd
 - `--validate` flag to do one-off validatation of the transformation config using a given catalog file.
 
