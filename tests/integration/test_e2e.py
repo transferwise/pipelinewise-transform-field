@@ -63,7 +63,6 @@ class TestEndToEnd(Base):
             {'tap_stream_name': 'dummy_stream', 'field_id': 'column_4', 'type': 'HASH-SKIP-FIRST-3'},
             {'tap_stream_name': 'dummy_stream', 'field_id': 'column_5', 'type': 'MASK-DATE'},
             {'tap_stream_name': 'dummy_stream', 'field_id': 'column_6', 'type': 'MASK-NUMBER'},
-            # {'tap_stream_name': 'dummy_stream', 'field_id': 'column_7', 'type': 'NOT-EXISTING-TRANSFORMATION-TYPE'},
             {'tap_stream_name': 'dummy_stream', 'field_id': 'column_11', 'type': 'SET-NULL',
              'when': [
                  {'column': 'column_7', 'equals': "Dummy row 2"},
