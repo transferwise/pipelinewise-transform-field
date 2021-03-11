@@ -37,6 +37,10 @@ or
   pip install .
 ```
 
+### To validate transformations
+
+`transform-field --validate --config [config.json] --catalog [catalog.json]`
+
 ### To run
 
 Put it between a tap and a target with simple unix pipes:
