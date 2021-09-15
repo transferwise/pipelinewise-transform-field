@@ -95,7 +95,7 @@ You need to define which columns have to be transformed by which method and in w
 * **MASK-DATE**: Replaces the months and day parts of date columns to be always 1st of Jan
 * **MASK-NUMBER**: Transforms any numeric value to zero
 * **MASK-HIDDEN**: Transforms any string to 'hidden'
-* **MASK-STRING-SKIP-ENDS**: Transforms string input to masked version skipping first and last n characters, e.g. MASK-STRING-SKIP-ENDS-3
+* **MASK-STRING-SKIP-ENDS-n**: Transforms string input to masked version skipping first and last n characters, e.g. MASK-STRING-SKIP-ENDS-3
 
 ### To check code style:
 
