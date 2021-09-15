@@ -825,16 +825,16 @@ class TestTransformField(unittest.TestCase):
         TransformField(config).validate(catalog)
 
     @patch('transform_field.utils.get_stream_schemas')
-    def test_validate_with_mask_skip_ends_fails_1(self, get_stream_schemas_mock):
+    def test_validate_with_mask_string_skip_ends_fails_1(self, get_stream_schemas_mock):
         """
-        Testing validation of MASK-SKIP-ENDS transformation when field has no type
+        Testing validation of MASK-STRING-SKIP-ENDS transformation when field has no type
         """
         config = {
             'transformations': [
                 {
                     "tap_stream_name": "stream_1",
                     "field_id": "column_1",
-                    "type": "MASK-SKIP-ENDS-1"
+                    "type": "MASK-STRING-SKIP-ENDS-1"
                 },
             ]
         }
@@ -850,16 +850,16 @@ class TestTransformField(unittest.TestCase):
             TransformField(config).validate(catalog)
 
     @patch('transform_field.utils.get_stream_schemas')
-    def test_validate_with_mask_skip_ends_fails_2(self, get_stream_schemas_mock):
+    def test_validate_with_mask_string_skip_ends_fails_2(self, get_stream_schemas_mock):
         """
-        Testing validation of MASK-SKIP-ENDS transformation when field has non-string type
+        Testing validation of MASK-STRING-SKIP-ENDS transformation when field has non-string type
         """
         config = {
             'transformations': [
                 {
                     "tap_stream_name": "stream_1",
                     "field_id": "column_1",
-                    "type": "MASK-SKIP-ENDS-1"
+                    "type": "MASK-STRING-SKIP-ENDS-1"
                 },
             ]
         }
@@ -880,16 +880,16 @@ class TestTransformField(unittest.TestCase):
             TransformField(config).validate(catalog)
 
     @patch('transform_field.utils.get_stream_schemas')
-    def test_validate_with_mask_skip_ends_fails_3(self, get_stream_schemas_mock):
+    def test_validate_with_mask_string_skip_ends_fails_3(self, get_stream_schemas_mock):
         """
-        Testing validation of MASK-SKIP-ENDS-1 transformation when field has string type but formatted
+        Testing validation of MASK-STRING-SKIP-ENDS-1 transformation when field has string type but formatted
         """
         config = {
             'transformations': [
                 {
                     "tap_stream_name": "stream_1",
                     "field_id": "column_1",
-                    "type": "MASK-SKIP-ENDS-1"
+                    "type": "MASK-STRING-SKIP-ENDS-1"
                 },
             ]
         }
@@ -911,16 +911,16 @@ class TestTransformField(unittest.TestCase):
             TransformField(config).validate(catalog)
 
     @patch('transform_field.utils.get_stream_schemas')
-    def test_validate_with_mask_skip_ends_success(self, get_stream_schemas_mock):
+    def test_validate_with_mask_string_skip_ends_success(self, get_stream_schemas_mock):
         """
-        Testing validation of MASK-SKIP-ENDS-1 transformation when field has string type but not formatted
+        Testing validation of MASK-STRING-SKIP-ENDS-1 transformation when field has string type but not formatted
         """
         config = {
             'transformations': [
                 {
                     "tap_stream_name": "stream_1",
                     "field_id": "column_1",
-                    "type": "MASK-SKIP-ENDS-1"
+                    "type": "MASK-STRING-SKIP-ENDS-1"
                 },
             ]
         }

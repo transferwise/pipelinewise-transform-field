@@ -71,8 +71,8 @@ class TestEndToEnd(Base):
              ]
              },
             {'tap_stream_name': 'dummy_stream', 'field_id': 'column_12', 'type': 'MASK-HIDDEN'},
-            {'tap_stream_name': 'dummy_stream', 'field_id': 'column_13', 'type': 'MASK-SKIP-ENDS-2'},
-            {'tap_stream_name': 'dummy_stream', 'field_id': 'column_14', 'type': 'MASK-SKIP-ENDS-3'}
+            {'tap_stream_name': 'dummy_stream', 'field_id': 'column_13', 'type': 'MASK-STRING-SKIP-ENDS-2'},
+            {'tap_stream_name': 'dummy_stream', 'field_id': 'column_14', 'type': 'MASK-STRING-SKIP-ENDS-3'}
         ]}
 
         transform_field = TransformField(trans_config)
@@ -147,9 +147,9 @@ class TestEndToEnd(Base):
 
                     'column_12': 'hidden',
 
-                    # Should be MASK-SKIP-ENDS-2 transformed
+                    # Should be MASK-STRING-SKIP-ENDS-2 transformed
                     'column_13': 'do****me',
-                    # Should be MASK-SKIP-ENDS-3 transformed
+                    # Should be MASK-STRING-SKIP-ENDS-3 transformed
                     'column_14': 'dom**kme',
                 },
                 'version': 1,
@@ -184,10 +184,10 @@ class TestEndToEnd(Base):
 
                     'column_12': 'hidden',
 
-                    # Should be MASK-SKIP-ENDS-2 transformed
-                    'column_13': 'nom',
-                    # Should be MASK-SKIP-ENDS-3 transformed
-                    'column_14': 'maskme',
+                    # Should be MASK-STRING-SKIP-ENDS-2 transformed
+                    'column_13': '***',
+                    # Should be MASK-STRING-SKIP-ENDS-3 transformed
+                    'column_14': '******',
                 },
                 'version': 1,
                 'time_extracted': '2019-01-31T15:51:50.215998Z'
