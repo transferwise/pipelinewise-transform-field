@@ -6,7 +6,7 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setup(name='pipelinewise-transform-field',
-      version='2.1.1',
+      version='2.1.0',
       description='Singer.io simple field transformer between taps and targets - PipelineWise compatible',
       long_description=long_description,
       long_description_content_type='text/markdown',
