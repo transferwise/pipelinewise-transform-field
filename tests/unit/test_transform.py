@@ -59,6 +59,18 @@ class TestTransform(unittest.TestCase):
             'hidden'
         )
 
+    def test_mask_skip_ends(self):
+        """Test MASK-SKIP-ENDS transformation"""
+        self.assertEqual(
+            transform.do_transform({"col_1": "do!maskme!"}, "col_1", "MASK-SKIP-ENDS-3"),
+            'do!****me!'
+        )
+
+        self.assertEqual(
+            transform.do_transform({"col_1": "nomask"}, "col_1", "MASK-SKIP-ENDS-3"),
+            'nomask'
+        )
+
     def test_unknown_transformation_type(self):
         """Test not existing transformation type"""
         # Should return the original value

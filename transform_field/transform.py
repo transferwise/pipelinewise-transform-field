@@ -80,6 +80,11 @@ def do_transform(record, field, trans_type, when=None):
             elif trans_type == "MASK-HIDDEN":
                 return_value = 'hidden'
 
+            # Transforms string input to masked version skipping first and last n characters, e.g. MASK-SKIP-ENDS-3
+            elif 'MASK-SKIP-ENDS' in trans_type:
+                n = int(trans_type[-1])
+                return_value = value if len(value) < (2 * n) else value[:n]+"*"*(len(value)-(2*n))+value[-n:]
+
             # Return the original value if cannot find transformation type
             # todo: is this the right behavior?
             else:
