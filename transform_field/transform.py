@@ -84,8 +84,9 @@ def do_transform(record, field, trans_type, when=None):
             # e.g. MASK-STRING-SKIP-ENDS-3
             elif 'MASK-STRING-SKIP-ENDS' in trans_type:
                 skip_ends_n = int(trans_type[-1])
-                return_value = '*'*len(value) if len(value) <= (2 * skip_ends_n) \
-                    else f'{value[:skip_ends_n]}{"*"*(len(value)-(2*skip_ends_n))}{value[-skip_ends_n:]}'
+                value_len = len(value)
+                return_value = '*'*value_len if value_len <= (2 * skip_ends_n) \
+                    else f'{value[:skip_ends_n]}{"*"*(value_len-(2*skip_ends_n))}{value[-skip_ends_n:]}'
 
             # Return the original value if cannot find transformation type
             # todo: is this the right behavior?
