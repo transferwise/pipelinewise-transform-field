@@ -46,6 +46,7 @@ class TransformationTypes(Enum):
     MASK_NUMBER = 'MASK-NUMBER'
     HASH = 'HASH'
     HASH_SKIP_FIRST = 'HASH-SKIP-FIRST'
+    MASK_STRING_SKIP_ENDS = 'MASK-STRING-SKIP-ENDS'
 
 
 def float_to_decimal(value):
@@ -270,7 +271,8 @@ class TransformField:
                 field_format = stream_schema['properties'][field_id].get('format')
 
             if trans_type in (TransformationTypes.HASH.value, TransformationTypes.MASK_HIDDEN.value) or \
-                    trans_type.startswith(TransformationTypes.HASH_SKIP_FIRST.value):
+                    trans_type.startswith(TransformationTypes.HASH_SKIP_FIRST.value) or \
+                    trans_type.startswith(TransformationTypes.MASK_STRING_SKIP_ENDS.value):
                 if not (field_type is not None and 'string' in field_type and not field_format):
                     raise InvalidTransformationException(
                         f'Cannot apply `{trans_type}` transformation type to a non-string field `'
