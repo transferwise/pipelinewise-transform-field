@@ -22,7 +22,6 @@ setup(name='pipelinewise-transform-field',
       ],
       py_modules=['transform_field'],
       install_requires=[
-          'wheel==0.36.*',
           'pipelinewise-singer-python==1.*',
       ],
       extras_require={

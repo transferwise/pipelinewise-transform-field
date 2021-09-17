@@ -59,6 +59,34 @@ class TestTransform(unittest.TestCase):
             'hidden'
         )
 
+    def test_mask_string_skip_ends_case1(self):
+        """Test MASK-STRING-SKIP-ENDS transformation with n=3"""
+        self.assertEqual(
+            transform.do_transform({"col_1": "do!maskme!"}, "col_1", "MASK-STRING-SKIP-ENDS-3"),
+            'do!****me!'
+        )
+
+    def test_mask_string_skip_ends_case2(self):
+        """Test MASK-STRING-SKIP-ENDS transformation with n=2"""
+        self.assertEqual(
+            transform.do_transform({"col_1": "nomask"}, "col_1", "MASK-STRING-SKIP-ENDS-2"),
+            'no**sk'
+        )
+
+    def test_mask_string_skip_ends_case3(self):
+        """Test MASK-STRING-SKIP-ENDS transformation where string length equals to 2 * mask_length"""
+        self.assertEqual(
+            transform.do_transform({"col_1": "nomask"}, "col_1", "MASK-STRING-SKIP-ENDS-3"),
+            '******'
+        )
+
+    def test_mask_string_skip_ends_case4(self):
+        """Test MASK-STRING-SKIP-ENDS transformation where string length less than 2 * mask_length"""
+        self.assertEqual(
+            transform.do_transform({"col_1": "shortmask"}, "col_1", "MASK-STRING-SKIP-ENDS-5"),
+            '*********'
+        )
+
     def test_unknown_transformation_type(self):
         """Test not existing transformation type"""
         # Should return the original value
