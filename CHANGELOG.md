@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## 2.2.0 (2021-09-17)
+### Added
+- New transformation MASK-STRING-SKIP-ENDS-n. The transformation masks the string except start and end n-characters.
 
 ## 2.1.0 (2021-03-11)
 ### Addedd
