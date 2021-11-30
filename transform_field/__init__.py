@@ -10,8 +10,8 @@ from decimal import Decimal
 from jsonschema import FormatChecker, Draft7Validator
 from singer import Catalog, Schema
 
-import transform_field.transform as transform
-import transform_field.utils as utils
+from transform_field import transform
+from transform_field import utils
 from transform_field.timings import Timings
 
 from transform_field.errors import CatalogRequiredException, StreamNotFoundException, InvalidTransformationException, \
