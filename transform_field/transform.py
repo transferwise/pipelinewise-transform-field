@@ -1,7 +1,12 @@
 import hashlib
 import re
 
+from typing import Dict, Any, Optional, List
+from dpath.util import get as get_xpath, set as set_xpath
+from singer import get_logger
 from dateutil import parser
+
+LOGGER = get_logger('transform_field')
 
 
 def is_transform_required(record, when):
@@ -55,11 +60,9 @@ def do_transform(record: Dict,
     Optionally can set conditional criteria based on other
     values of the record"""
 
-    return_value = None
+    return_value = value = record.get(field)
 
     try:
-        value = record.get(field)
-
         # Do transformation only if required
         if is_transform_required(record, when):
 

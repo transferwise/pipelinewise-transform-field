@@ -271,8 +271,11 @@ class TransformField:
                 field_type = stream_schema['properties'][field_id].get('type')
                 field_format = stream_schema['properties'][field_id].get('format')
 
-            # If the value we want to transform is a field in a JSON property then no need to enforce rules below for now
-            if ("object" in field_type or "array" in field_type) and transformation.field_paths:
+            # If the value we want to transform is a field in a JSON property
+            # then no need to enforce rules below for now
+            if field_type and \
+                    ("object" in field_type or "array" in field_type) and \
+                    transformation.field_paths is not None:
                 continue
 
             if trans_type in (TransformationTypes.HASH.value, TransformationTypes.MASK_HIDDEN.value) or \
