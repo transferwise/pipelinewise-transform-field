@@ -160,7 +160,7 @@ class TestTransform(unittest.TestCase):
             ['info/last_name']
         )
 
-        self.assertEqual(expected_value, return_value)
+        self.assertDictEqual(expected_value, return_value)
 
     def test_transform_field_in_json_col_with_conditions(self):
         """Test transformation of a field in a json column with conditions"""
