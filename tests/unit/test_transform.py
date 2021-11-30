@@ -39,7 +39,7 @@ class TestTransform(unittest.TestCase):
             "2019-01-01T13:34:11"
         )
 
-        # Mask date should keep the time elements
+        # Mask date should keep the time elements, date is invalid
         self.assertEqual(
             transform.do_transform({"col_1": "2019-05-21T13:34:99"}, "col_1", "MASK-DATE"),
             "2019-05-21T13:34:99"
