@@ -1,12 +1,9 @@
-#!/usr/bin/env python3
-
 import io
 import sys
 import time
-from typing import Union, Dict
-
 import singer
 
+from typing import Union, Dict
 from enum import Enum, unique
 from collections import namedtuple
 from decimal import Decimal
@@ -15,11 +12,11 @@ from singer import Catalog, Schema
 
 import transform_field.transform as transform
 import transform_field.utils as utils
+from transform_field.timings import Timings
 
 from transform_field.errors import CatalogRequiredException, StreamNotFoundException, InvalidTransformationException, \
     UnsupportedTransformationTypeException, NoStreamSchemaException
 
-from transform_field.timings import Timings
 
 LOGGER = singer.get_logger('transform_field')
 TIMINGS = Timings(LOGGER)
@@ -274,9 +271,8 @@ class TransformField:
                 field_type = stream_schema['properties'][field_id].get('type')
                 field_format = stream_schema['properties'][field_id].get('format')
 
-            # if the value we want to transform is a field in a JSON property then no need to enforce rules below
+            # If the value we want to transform is a field in a JSON property then no need to enforce rules below for now
             if ("object" in field_type or "array" in field_type) and transformation.field_paths:
-                # todo write better handling maybe
                 continue
 
             if trans_type in (TransformationTypes.HASH.value, TransformationTypes.MASK_HIDDEN.value) or \
