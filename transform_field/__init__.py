@@ -1,24 +1,22 @@
-#!/usr/bin/env python3
-
 import io
 import sys
 import time
-from typing import Union, Dict
-
 import singer
 
+from typing import Union, Dict
 from enum import Enum, unique
 from collections import namedtuple
 from decimal import Decimal
 from jsonschema import FormatChecker, Draft7Validator
-from singer import Catalog, SchemaMessage, Schema
+from singer import Catalog, Schema
 
-import transform_field.transform as transform
-import transform_field.utils as utils
+from transform_field import transform
+from transform_field import utils
+from transform_field.timings import Timings
+
 from transform_field.errors import CatalogRequiredException, StreamNotFoundException, InvalidTransformationException, \
     UnsupportedTransformationTypeException, NoStreamSchemaException
 
-from transform_field.timings import Timings
 
 LOGGER = singer.get_logger('transform_field')
 TIMINGS = Timings(LOGGER)
@@ -28,7 +26,7 @@ DEFAULT_BATCH_DELAY_SECONDS = 300.0
 VALIDATE_RECORDS = False
 
 StreamMeta = namedtuple('StreamMeta', ['schema', 'key_properties', 'bookmark_properties'])
-TransMeta = namedtuple('TransMeta', ['field_id', 'type', 'when'])
+TransMeta = namedtuple('TransMeta', ['field_id', 'type', 'when', 'field_paths'])
 
 REQUIRED_CONFIG_KEYS = [
     "transformations"
@@ -96,7 +94,8 @@ class TransformField:
             self.trans_meta[stream].append(TransMeta(
                 trans["field_id"],
                 trans["type"],
-                trans.get('when')
+                trans.get('when'),
+                trans.get('field_paths')
             ))
 
     # pylint: disable=too-many-nested-blocks,too-many-branches
@@ -124,7 +123,9 @@ class TransformField:
                     for trans in trans_meta:
 
                         if trans.field_id in message.record:
-                            transformed = transform.do_transform(message.record, trans.field_id, trans.type, trans.when)
+                            transformed = transform.do_transform(
+                                message.record, trans.field_id, trans.type, trans.when, trans.field_paths
+                            )
                             message.record[trans.field_id] = transformed
 
                     if VALIDATE_RECORDS:
@@ -269,6 +270,13 @@ class TransformField:
             else:
                 field_type = stream_schema['properties'][field_id].get('type')
                 field_format = stream_schema['properties'][field_id].get('format')
+
+            # If the value we want to transform is a field in a JSON property
+            # then no need to enforce rules below for now
+            if field_type and \
+                    ("object" in field_type or "array" in field_type) and \
+                    transformation.field_paths is not None:
+                continue
 
             if trans_type in (TransformationTypes.HASH.value, TransformationTypes.MASK_HIDDEN.value) or \
                     trans_type.startswith(TransformationTypes.HASH_SKIP_FIRST.value) or \

@@ -39,7 +39,7 @@ class TestTransform(unittest.TestCase):
             "2019-01-01T13:34:11"
         )
 
-        # Mask date should keep the time elements
+        # Mask date should keep the time elements, date is invalid
         self.assertEqual(
             transform.do_transform({"col_1": "2019-05-21T13:34:99"}, "col_1", "MASK-DATE"),
             "2019-05-21T13:34:99"
@@ -137,3 +137,77 @@ class TestTransform(unittest.TestCase):
             # Expected output:
             "123456789"
         )
+
+    def test_transform_field_in_json_col(self):
+        """Test transformation of a field in a json column with no conditions"""
+
+        expected_value = {'id': 1, 'info': {'last_name': 'hidden', 'first_name': 'John'}}
+
+        return_value = transform.do_transform(
+            # Record:
+            {
+                "col_1": "com.transferwise.fx.user.User",
+                "col_2": "passwordHash",
+                "col_3": "lkj",
+                'col_4': {'id': 1, 'info': {'last_name': 'Smith', 'first_name': 'John'}}
+            },
+            # Column to transform:
+            "col_4",
+            # Transform method:
+            "MASK-HIDDEN",
+            # Conditions when to transform:
+            None,
+            ['info/last_name']
+        )
+
+        self.assertDictEqual(expected_value, return_value)
+
+    def test_transform_field_in_json_col_with_conditions(self):
+        """Test transformation of a field in a json column with conditions"""
+
+        expected_value = {'id': 1, 'info': {'last_name': 'hidden', 'first_name': 'John'}}
+
+        return_value = transform.do_transform(
+            # Record:
+            {
+                "col_1": "com.transferwise.fx.user.User",
+                "col_2": "passwordHash",
+                "col_3": "lkj",
+                'col_4': {'id': 1, 'info': {'last_name': 'Smith', 'first_name': 'John'}}
+            },
+            # Column to transform:
+            "col_4",
+            # Transform method:
+            "MASK-HIDDEN",
+            # Conditions when to transform:
+            [
+                {'column': 'col_2', 'equals': "passwordHash"},
+            ],
+            ['info/last_name']
+        )
+
+        self.assertDictEqual(expected_value, return_value)
+
+    def test_transform_fields_in_json_col(self):
+        """Test transformation of multiple fields in a json column with no conditions"""
+
+        expected_value = {'id': 1, 'info': {'last_name': 'hidden', 'first_name': 'hidden', 'age': 25}}
+
+        return_value = transform.do_transform(
+            # Record:
+            {
+                "col_1": "com.transferwise.fx.user.User",
+                "col_2": "passwordHash",
+                "col_3": "lkj",
+                'col_4': {'id': 1, 'info': {'last_name': 'Smith', 'first_name': 'John', 'age': 25}}
+            },
+            # Column to transform:
+            "col_4",
+            # Transform method:
+            "MASK-HIDDEN",
+            # Conditions when to transform:
+            None,
+            ['info/last_name', 'info/first_name']
+        )
+
+        self.assertDictEqual(expected_value, return_value)

@@ -23,17 +23,18 @@ setup(name='pipelinewise-transform-field',
       py_modules=['transform_field'],
       install_requires=[
           'pipelinewise-singer-python==1.*',
+          'dpath==2.0.*',
       ],
       extras_require={
-        'test': [
-            'pytest==6.2.*',
-            'pytest-cov==2.12.*',
-            'pylint==2.7.*',
-        ]
+          'test': [
+              'pytest==6.2.*',
+              'pytest-cov==2.12.*',
+              'pylint==2.7.*',
+          ]
       },
       entry_points='''
           [console_scripts]
           transform-field=transform_field:main
       ''',
       packages=['transform_field']
-)
+      )

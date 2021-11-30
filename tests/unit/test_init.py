@@ -46,10 +46,10 @@ class TestTransformField(unittest.TestCase):
         self.assertDictEqual(instance.stream_meta, {})
         self.assertDictEqual(instance.trans_meta, {
             'stream_1': [
-                TransMeta('column_1', 'SET-NULL', None),
-                TransMeta('column_2', 'HASH', []),
+                TransMeta('column_1', 'SET-NULL', None, None),
+                TransMeta('column_2', 'HASH', [], None),
             ],
-            'stream_2': [TransMeta('column_1', 'MASK-DATE', None)],
+            'stream_2': [TransMeta('column_1', 'MASK-DATE', None, None)],
         })
 
     def test_validate_without_catalog_fails(self):
