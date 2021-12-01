@@ -102,14 +102,14 @@ class TestTransform(unittest.TestCase):
         self.assertEqual(
             transform.do_transform(
                 # Record:
-                {"col_1": "com.transferwise.fx.user.User", "col_2": "passwordHash", "col_3": "lkj"},
+                {"col_1": "random value", "col_2": "passwordHash", "col_3": "lkj"},
                 # Column to transform:
                 "col_3",
                 # Transform method:
                 "SET-NULL",
                 # Conditions when to transform:
                 [
-                    {'column': 'col_1', 'equals': "com.transferwise.fx.user.User"},
+                    {'column': 'col_1', 'equals': "random value"},
                     {'column': 'col_2', 'equals': "passwordHash"},
                 ]
             ),
@@ -122,14 +122,14 @@ class TestTransform(unittest.TestCase):
         self.assertEqual(
             transform.do_transform(
                 # Record:
-                {"col_1": "com.transferwise.fx.user.User", "col_2": "id", "col_3": "123456789"},
+                {"col_1": "random value", "col_2": "id", "col_3": "123456789"},
                 # Column to transform:
                 "col_3",
                 # Transform method:
                 "SET-NULL",
                 # Conditions when to transform:
                 [
-                    {'column': 'col_1', 'equals': "com.transferwise.fx.user.User"},
+                    {'column': 'col_1', 'equals': "random value"},
                     {'column': 'col_2', 'equals': "passwordHash"},
                 ]
             ),
@@ -146,7 +146,7 @@ class TestTransform(unittest.TestCase):
         return_value = transform.do_transform(
             # Record:
             {
-                "col_1": "com.transferwise.fx.user.User",
+                "col_1": "random value",
                 "col_2": "passwordHash",
                 "col_3": "lkj",
                 'col_4': {'id': 1, 'info': {'last_name': 'Smith', 'first_name': 'John'}}
@@ -170,7 +170,7 @@ class TestTransform(unittest.TestCase):
         return_value = transform.do_transform(
             # Record:
             {
-                "col_1": "com.transferwise.fx.user.User",
+                "col_1": "random value",
                 "col_2": "passwordHash",
                 "col_3": "lkj",
                 'col_4': {'id': 1, 'info': {'last_name': 'Smith', 'first_name': 'John'}}
@@ -196,7 +196,7 @@ class TestTransform(unittest.TestCase):
         return_value = transform.do_transform(
             # Record:
             {
-                "col_1": "com.transferwise.fx.user.User",
+                "col_1": "random value",
                 "col_2": "passwordHash",
                 "col_3": "lkj",
                 'col_4': {'id': 1, 'info': {'last_name': 'Smith', 'first_name': 'John', 'age': 25}}
@@ -216,7 +216,7 @@ class TestTransform(unittest.TestCase):
         """Test transformation of a column with condition on a field in a json"""
 
         record = {
-            "col_1": "com.transferwise.fx.user.User",
+            "col_1": "random value",
             "col_2": "passwordHash",
             "col_3": "323df43983dfs",
             'col_4': {'id': 1, 'info': {'last_name': 'Smith', 'first_name': 'John', 'phone': '6573930'}}
@@ -242,7 +242,7 @@ class TestTransform(unittest.TestCase):
         """Test transformation of a field in a json column with condition on a field in json, condition will be met"""
 
         record = {
-            "col_1": "com.transferwise.fx.user.User",
+            "col_1": "random value",
             "col_2": "passwordHash",
             "col_3": "lkj",
             'col_4': {'id': 1, 'info': {'last_name': 'Smith', 'first_name': 'John', 'phone': '6573930'}}
@@ -270,7 +270,7 @@ class TestTransform(unittest.TestCase):
         the condition will not be met"""
 
         record = {
-            "col_1": "com.transferwise.fx.user.User",
+            "col_1": "random value",
             "col_2": "passwordHash",
             "col_3": "lkj",
             'col_4': {'id': 1, 'info': {'last_name': 'Smith', 'first_name': 'John', 'phone': '6573930'}}
@@ -298,7 +298,7 @@ class TestTransform(unittest.TestCase):
         """Test conditional transformation, all the conditions will be met and transformation should happen"""
 
         record = {
-            "col_1": "com.transferwise.fx.user.User",
+            "col_1": "random value",
             "col_2": "passwordHash",
             "col_3": "lkj",
             'col_4': {'id': 1, 'info': {'last_name': 'Smith', 'first_name': 'John', 'phone': '6573930'}},
@@ -327,7 +327,7 @@ class TestTransform(unittest.TestCase):
         """Test conditional transformation, one of the conditions will not be met and transformation should not happen"""
 
         record = {
-            "col_1": "com.transferwise.fx.user.User",
+            "col_1": "random value",
             "col_2": "passwordHash",
             "col_3": "lkj",
             'col_4': {'id': 1, 'info': {'last_name': 'Smith', 'first_name': 'John', 'phone': '6573930'}},
