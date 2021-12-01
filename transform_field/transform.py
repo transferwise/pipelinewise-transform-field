@@ -9,45 +9,98 @@ from dateutil import parser
 LOGGER = get_logger('transform_field')
 
 
-def is_transform_required(record, when):
-    """Detects if the transformation is required or not based on
-    the defined conditions and the actual values in a record"""
+def is_transform_required(record: Dict, when: Optional[List[Dict]]) -> bool:
+    """
+        Detects if the transformation is required or not based on
+        the defined conditions and the actual values in a record.
+        All conditions in when need to be met for the transformation to be required.
+    """
+    if not when:
+        # Transformation is always required if 'when' condition not defined
+        LOGGER.debug('No conditions, transformations is required')
+        return True
+
     transform_required = False
 
     # Check if conditional transformation matches criteria
-    if when:
+    # Evaluate every condition
+    for condition in when:
+        column_to_match = condition['column']
+        column_value = record.get(column_to_match, "")
 
-        # Evaluate every condition
-        for condition in when:
-            column_to_match = condition.get('column')
-            column_value = record.get(column_to_match, "")
-            cond_equals = condition.get('equals')
-            cond_pattern = condition.get('regex_match')
+        field_path_to_match = condition.get('field_path')
 
-            # Exact condition
-            if cond_equals:
-                if column_value == cond_equals:
-                    transform_required = True
-                else:
-                    transform_required = False
-                    break
+        # check if given field exists in the column value
+        if field_path_to_match:
+            try:
+                field_value = get_xpath(column_value, field_path_to_match)
+                LOGGER.debug('field "%s" exists in the value of column "%s"', field_path_to_match, column_to_match)
 
-            # Regex based condition
-            if cond_pattern:
-                matcher = re.compile(cond_pattern)
-                if matcher.search(column_value):
-                    transform_required = True
+            except KeyError:
+                # KeyError exception means the field doesn't exist, hence we cannot proceed with the
+                # equals/regex match condition, thus the condition isn't met and don't need to do
+                # transformation so breaking prematurely
+                transform_required = False
 
-                # Condition does not meet, exit the loop
-                else:
-                    transform_required = False
-                    break
+                LOGGER.debug('field "%s" doesn\'t exists in the value of column "%s", '
+                             'so transformation is not required.', field_path_to_match, column_to_match)
+                break
 
-    # Transformation is always required if 'when' condition not defined
-    else:
-        transform_required = True
+        cond_equals = condition.get('equals')
+        cond_pattern = condition.get('regex_match')
+
+        # Exact condition
+        if cond_equals:
+            LOGGER.debug('Equals condition found, value is: %s', cond_equals)
+            if field_path_to_match:
+                transform_required = __is_condition_met('equal', cond_equals, field_value)
+            else:
+                transform_required = __is_condition_met('equal', cond_equals, column_value)
+
+            # Condition isn't met, exit the loop
+            if not transform_required:
+                LOGGER.debug('Equals condition didn\'t match, so transformation is not required.')
+                break
+
+        # Regex based condition
+        elif cond_pattern:
+            LOGGER.debug('Regex condition found, pattern is: %s', cond_pattern)
+
+            if field_path_to_match:
+                transform_required = __is_condition_met('regex', cond_pattern, field_value)
+            else:
+                transform_required = __is_condition_met('regex', cond_pattern, column_value)
+
+            # Condition isn't met, exit the loop
+            if not transform_required:
+                LOGGER.debug('Regex pattern didn\'t match, so transformation is not required.')
+                break
+
+    LOGGER.debug('Transformation required? %s', transform_required)
 
     return transform_required
+
+
+def __is_condition_met(condition_type: str, condition_value: Any, value: Any) -> bool:
+    """
+    Checks if given value meets the given condition
+    Args:
+        condition_type: condition type, could be "equal" or "regex"
+        condition_value: the value of the condition, in case of regex it's the pattern, and
+                         a value to compare to in case of equal
+        value: the target value to run the condition against
+
+    Returns: bool, True of condition is met, False otherwise
+    """
+
+    if condition_type == 'equal':
+        return value == condition_value
+
+    if condition_type == 'regex':
+        matcher = re.compile(condition_value)
+        return bool(matcher.search(value))
+
+    raise NotImplementedError(f'__is_condition_met is not implemented for condition type "{condition_type}"', )
 
 
 def do_transform(record: Dict,
@@ -80,7 +133,7 @@ def do_transform(record: Dict,
             else:
                 return_value = _transform_value(value, trans_type)
 
-        # Return the original value if cannot find transformation type
+        # Return the original value if transformation is not required
         else:
             return_value = value
 
@@ -137,6 +190,7 @@ def _transform_value(value: Any, trans_type: str) -> Any:
     # Return the original value if cannot find transformation type
     # todo: is this the right behavior?
     else:
+        LOGGER.warning('Cannot find transformation type %s, returning same value', trans_type)
         return_value = value
 
     return return_value
