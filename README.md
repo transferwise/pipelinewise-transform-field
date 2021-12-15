@@ -51,43 +51,9 @@ It's reading incoming messages from STDIN and using `config.json` to transform i
 
 **Note**: To avoid version conflicts run `tap`, `transform` and `targets` in separate virtual environments.
 
-### Configuration
-
-You need to define which columns have to be transformed by which method and in which condition the transformation needs to be applied.
-
-**Example config.json**:
-
-  ```json
-  {
-    "transformations": [
-        {
-            "field_id": "password_hash",
-            "tap_stream_name": "stream-id-sent-by-the-tap",
-            "type": "SET-NULL"
-        },
-        {
-            "field_id": "salt",
-            "tap_stream_name": "stream-id-sent-by-the-tap",
-            "type": "SET-NULL"
-        },
-        {
-            "field_id": "value",
-            "tap_stream_name": "stream-id-sent-by-the-tap",
-            "type": "SET-NULL",
-            "when": [
-                {"column": "string_column_1", "equals": "Property" },
-                {"column": "numeric_column", "equals": 200 },
-                {"column": "string_column_2", "regex_match": "sensitive.*PII" }
-              ]
-        }
-
-    ]
-  }
-  ```
-
-(Tip: PipelineWise generating this for you from a more readable YAML format)
-
 ### Transformation types
+
+The following are the transformation types supported by _pipelinewise-transform-field_:
 
 * **SET-NULL**: Transforms any input to NULL
 * **HASH**: Transforms string input to hash
@@ -96,6 +62,93 @@ You need to define which columns have to be transformed by which method and in w
 * **MASK-NUMBER**: Transforms any numeric value to zero
 * **MASK-HIDDEN**: Transforms any string to 'hidden'
 * **MASK-STRING-SKIP-ENDS-n**: Transforms string input to masked version skipping first and last n characters, e.g. MASK-STRING-SKIP-ENDS-3
+
+_PS_: 1 =< n =< 9
+
+### Conditional transformations
+
+It is possible to transform a record's property based on some given condition(s), the transformation will only take place when all conditions are met.
+
+A condition is a combination of: 
+* column [required]: the field to look up to
+* operation [required]: the comparison type to use, the supported ones are `equals` and `regex_match`.
+* value [required]: the column value to look for in records.
+
+**An equality condition on a column**
+```json
+{
+  "column": "<some column name>",
+  "equals": <some important value>
+}
+```
+
+**A regex condition on a column**
+```json
+{
+  "column": "<some column name>",
+  "regex_match": "<some regex pattern>"
+}
+```
+
+**A condition on a property within a JSON-type column**
+```json
+{
+  "column": "<some column name>",
+  "field_path": "<xpath to property within 'column' object>",
+  "equals": <some important value>
+}
+```
+
+### Configuration
+
+You need to define which columns have to be transformed by which method and in which condition the transformation needs to be applied.
+
+#### Basic transformation
+A basic transformation is where a field in all a stream records will be transformed can be achieved with:
+```json
+{
+  "tap_stream_name": "<stream ID>",
+  "field_id": "<Name of the field to transform in the record>",
+  "type": "<Transformation type>"
+}
+```
+
+#### Transformation within JSON
+
+In order to transform property(ies) within a JSON type field, you can make use of `field_paths` property:
+
+```json
+{
+  "tap_stream_name": "<stream ID>",
+  "field_id": "<Name of the field to transform in the record>",
+  "field_paths": ["xpath to property 1", "xpath to property 2"],
+  "type": "<Transformation type>"
+}
+```
+
+#### Conditional Transformation
+
+To apply transformation conditionally, you can make use of the property `when` which can have one or many conditions:
+
+```json
+{
+  "tap_stream_name": "<stream ID>",
+  "field_id": "<Name of the field to transform in the record>",
+  "type": "<Transformation type>",
+  "when": [
+    {"column": "string_col_1", "equals": "some value"},
+    {"column": "string_col_2", "regex_match": ".*PII.*"},
+    {"column": "numeric_col_1", "equals": 33},
+    {"column": "json_column", "field_path": "metadata/comment", "regex_match": "sensitive"}
+  ]
+}
+```
+
+**Sample config** 
+[config.json](./sample_config.json)
+
+(Tip: PipelineWise generating this for you from a more readable YAML format)
+
 
 ### To check code style:
 
