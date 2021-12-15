@@ -102,14 +102,14 @@ class TestTransform(unittest.TestCase):
         self.assertEqual(
             transform.do_transform(
                 # Record:
-                {"col_1": "com.transferwise.fx.user.User", "col_2": "passwordHash", "col_3": "lkj"},
+                {"col_1": "random value", "col_2": "passwordHash", "col_3": "lkj"},
                 # Column to transform:
                 "col_3",
                 # Transform method:
                 "SET-NULL",
                 # Conditions when to transform:
                 [
-                    {'column': 'col_1', 'equals': "com.transferwise.fx.user.User"},
+                    {'column': 'col_1', 'equals': "random value"},
                     {'column': 'col_2', 'equals': "passwordHash"},
                 ]
             ),
@@ -122,14 +122,14 @@ class TestTransform(unittest.TestCase):
         self.assertEqual(
             transform.do_transform(
                 # Record:
-                {"col_1": "com.transferwise.fx.user.User", "col_2": "id", "col_3": "123456789"},
+                {"col_1": "random value", "col_2": "id", "col_3": "123456789"},
                 # Column to transform:
                 "col_3",
                 # Transform method:
                 "SET-NULL",
                 # Conditions when to transform:
                 [
-                    {'column': 'col_1', 'equals': "com.transferwise.fx.user.User"},
+                    {'column': 'col_1', 'equals': "random value"},
                     {'column': 'col_2', 'equals': "passwordHash"},
                 ]
             ),
@@ -146,7 +146,7 @@ class TestTransform(unittest.TestCase):
         return_value = transform.do_transform(
             # Record:
             {
-                "col_1": "com.transferwise.fx.user.User",
+                "col_1": "random value",
                 "col_2": "passwordHash",
                 "col_3": "lkj",
                 'col_4': {'id': 1, 'info': {'last_name': 'Smith', 'first_name': 'John'}}
@@ -170,7 +170,7 @@ class TestTransform(unittest.TestCase):
         return_value = transform.do_transform(
             # Record:
             {
-                "col_1": "com.transferwise.fx.user.User",
+                "col_1": "random value",
                 "col_2": "passwordHash",
                 "col_3": "lkj",
                 'col_4': {'id': 1, 'info': {'last_name': 'Smith', 'first_name': 'John'}}
@@ -196,7 +196,7 @@ class TestTransform(unittest.TestCase):
         return_value = transform.do_transform(
             # Record:
             {
-                "col_1": "com.transferwise.fx.user.User",
+                "col_1": "random value",
                 "col_2": "passwordHash",
                 "col_3": "lkj",
                 'col_4': {'id': 1, 'info': {'last_name': 'Smith', 'first_name': 'John', 'age': 25}}
@@ -211,3 +211,145 @@ class TestTransform(unittest.TestCase):
         )
 
         self.assertDictEqual(expected_value, return_value)
+
+    def test_transform_col_with_condition_on_json_field(self):
+        """Test transformation of a column with condition on a field in a json"""
+
+        record = {
+            "col_1": "random value",
+            "col_2": "passwordHash",
+            "col_3": "323df43983dfs",
+            'col_4': {'id': 1, 'info': {'last_name': 'Smith', 'first_name': 'John', 'phone': '6573930'}}
+        }
+
+        self.assertEqual(
+            'hidden',
+            transform.do_transform(
+                # Record:
+                record,
+                # Column to transform:
+                "col_3",
+                # Transform method:
+                "MASK-HIDDEN",
+                # Conditions when to transform:
+                [
+                    {'column': 'col_4', 'field_path': 'info/last_name', 'equals': 'Smith'},
+                ]
+            )
+        )
+
+    def test_transform_field_in_json_col_with_condition_on_field(self):
+        """Test transformation of a field in a json column with condition on a field in json, condition will be met"""
+
+        record = {
+            "col_1": "random value",
+            "col_2": "passwordHash",
+            "col_3": "lkj",
+            'col_4': {'id': 1, 'info': {'last_name': 'Smith', 'first_name': 'John', 'phone': '6573930'}}
+        }
+
+        self.assertDictEqual(
+            {'id': 1, 'info': {'first_name': 'John', 'last_name': None, 'phone': '6573930'}},
+            transform.do_transform(
+                # Record:
+                record,
+                # Column to transform:
+                "col_4",
+                # Transform method:
+                "SET-NULL",
+                # Conditions when to transform:
+                [
+                    {'column': 'col_4', 'field_path': 'info/phone', 'equals': '6573930'},
+                ],
+                ['info/last_name']
+            )
+        )
+
+    def test_transform_field_in_json_col_with_condition_on_field_2(self):
+        """Test transformation of a field in a json column with condition on a field in json,
+        the condition will not be met"""
+
+        record = {
+            "col_1": "random value",
+            "col_2": "passwordHash",
+            "col_3": "lkj",
+            'col_4': {'id': 1, 'info': {'last_name': 'Smith', 'first_name': 'John', 'phone': '6573930'}}
+        }
+
+        # not transformed
+        self.assertEqual(
+            {'id': 1, 'info': {'last_name': 'Smith', 'first_name': 'John', 'phone': '6573930'}},
+            transform.do_transform(
+                # Record:
+                record,
+                # Column to transform:
+                "col_4",
+                # Transform method:
+                "SET-NULL",
+                # Conditions when to transform:
+                [
+                    {'column': 'col_4', 'field_path': 'info/phone', 'regex_match': '.*6573955.*'},
+                ],
+                ['info/last_name']
+            )
+        )
+
+    def test_transform_multiple_conditions_all_success(self):
+        """Test conditional transformation, all the conditions will be met and transformation should happen"""
+
+        record = {
+            "col_1": "random value",
+            "col_2": "passwordHash",
+            "col_3": "lkj",
+            'col_4': {'id': 1, 'info': {'last_name': 'Smith', 'first_name': 'John', 'phone': '6573930'}},
+            'col_5': '2021-11-30T16:40:07'
+        }
+
+        self.assertEqual(
+            '2021-01-01T16:40:07',
+            transform.do_transform(
+                # Record:
+                record,
+                # Column to transform:
+                "col_5",
+                # Transform method:
+                "MASK-DATE",
+                # Conditions when to transform:
+                [
+                    {'column': 'col_4', 'field_path': 'info/last_name', 'equals': 'Smith'},
+                    {'column': 'col_4', 'field_path': 'id', 'equals': 1},
+                    {'column': 'col_3', 'regex_match': '.*lkj.*'},
+                ]
+            )
+        )
+
+    def test_transform_multiple_conditions_one_fails(self):
+        """Test conditional transformation, one of the conditions will not be met and transformation should not happen"""
+
+        record = {
+            "col_1": "random value",
+            "col_2": "passwordHash",
+            "col_3": "lkj",
+            'col_4': {'id': 1, 'info': {'last_name': 'Smith', 'first_name': 'John', 'phone': '6573930'}},
+            'col_5': '2021-11-30T16:40:07'
+        }
+
+        # not transformed
+        self.assertEqual(
+            '2021-11-30T16:40:07',
+            transform.do_transform(
+                # Record:
+                record,
+                # Column to transform:
+                "col_5",
+                # Transform method:
+                "MASK-DATE",
+                # Conditions when to transform:
+                [
+                    {'column': 'col_4', 'field_path': 'info/last_name', 'equals': 'Smith'},
+                    {'column': 'col_4', 'field_path': 'id', 'equals': 2},
+                    {'column': 'col_3', 'regex_match': '.*lkj.*'},
+                ]
+            )
+        )
+
