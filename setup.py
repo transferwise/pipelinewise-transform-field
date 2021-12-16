@@ -29,7 +29,7 @@ setup(name='pipelinewise-transform-field',
           'test': [
               'pytest==6.2.*',
               'pytest-cov==3.0.*',
-              'pylint==2.7.*',
+              'pylint==2.12.*',
           ]
       },
       entry_points='''
