@@ -137,20 +137,18 @@ class TransformField:
                                 for k in key_properties:
                                     if k not in data:
                                         raise TransformFieldException(
-                                            'Message {} is missing key property {}'.format(i, k))
+                                            f'Message {i} is missing key property {k}')
 
                         except Exception as exc:
                             if type(exc).__name__ == "InvalidOperation":
                                 raise TransformFieldException(
-                                    "Record does not pass schema validation. RECORD: {}\n'multipleOf' validations that "
-                                    "allows long precisions are not supported (i.e. with 15 digits or more). "
-                                    "Try removing 'multipleOf' methods from JSON schema.\n{}".format(message.record,
-                                                                                                     exc)
-                                ) from exc
+                                    f"Record does not pass schema validation. RECORD: {message.record}"
+                                    "\n'multipleOf' validations that allows long precisions are not "
+                                    "supported (i.e. with 15 digits or more). "
+                                    f"Try removing 'multipleOf' methods from JSON schema.\n{exc}") from exc
 
                             raise TransformFieldException(
-                                "Record does not pass schema validation. RECORD: {}\n{}".format(message.record,
-                                                                                                exc)) from exc
+                                f"Record does not pass schema validation. RECORD: {message.record}\n{exc}") from exc
 
                     # Write the transformed message
                     singer.write_message(message)
@@ -176,7 +174,7 @@ class TransformField:
             if not message:
                 raise TransformFieldException('Unknown message type')
         except Exception as exc:
-            raise TransformFieldException('Failed to process incoming message: {}\n{}'.format(line, exc)) from exc
+            raise TransformFieldException(f'Failed to process incoming message: {line}\n{exc}') from exc
 
         # If we got a Schema, set the schema and key properties for this
         # stream. Flush the batch, if there is one, in case the schema is
