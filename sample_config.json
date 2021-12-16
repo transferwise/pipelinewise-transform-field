@@ -1,4 +1,3 @@
-
 {
   "transformations": [
     {
@@ -18,7 +17,8 @@
       "when": [
         {"column": "string_column_1", "equals": "Property" },
         {"column": "numeric_column", "equals": 200 },
-        {"column": "string_column_2", "regex_match": "sensitive.*PII" }
+        {"column": "string_column_2", "regex_match": "sensitive.*PII" },
+        {"column": "json_column", "field_path": "metadata/comment", "regex_match": "sensitive" }
       ]
     },
     {

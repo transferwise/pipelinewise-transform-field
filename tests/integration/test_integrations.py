@@ -40,7 +40,7 @@ class Base(unittest.TestCase):
         return messages
 
 
-class TestEndToEnd(Base):
+class TestIntegration(Base):
 
     def test_invalid_json(self):
         """Receiving invalid JSONs should raise an exception"""
@@ -236,3 +236,79 @@ class TestEndToEnd(Base):
         ], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
 
         self.assertIsNone(result.check_returncode())
+
+    def test_multiple_singer_json_messages_with_transformation_on_json(self):
+        """Test a bunch of singer messages with transformation on json"""
+        tap_lines = self.get_tap_input_messages('streams_with_object.json')
+
+        # Set transformations on some columns
+        trans_config = {'transformations': [
+            {'tap_stream_name': 'my_cool_stream', 'field_id': 'column_1', 'type': 'SET-NULL'},
+            {'tap_stream_name': 'my_cool_stream', 'field_id': 'column_2', 'type': 'MASK-HIDDEN'},
+            {'tap_stream_name': 'my_cool_stream', 'field_id': 'column_3', 'type': 'MASK-DATE',
+             'when': [
+                 {'column': 'c_pk', 'equals': 2},
+                 {'column': 'column_6', 'field_path': 'key1', 'equals': 'B'}
+             ]
+             },
+            {'tap_stream_name': 'my_cool_stream', 'field_id': 'column_4', 'type': 'MASK-NUMBER',
+                'when': [
+                    {'column': 'column_4', 'equals': -44},
+                ]
+             },
+            {'tap_stream_name': 'my_cool_stream', 'field_id': 'column_6', 'type': 'SET-NULL',
+             'field_paths': ['key2/key2_2']},
+        ]}
+
+        transform_field = TransformField(trans_config)
+        transform_field.consume(tap_lines)
+
+        records = [msg['record'] for msg in self.singer_output_to_objects(self.stdout) if msg['type'] == 'RECORD']
+
+        self.assertListEqual(records, [
+            {
+                'c_pk': 1,
+                'column_1': None,
+                'column_2': 'hidden',
+                'column_3': '2019-12-21T12:12:45',
+                'column_4': 1234,
+                'column_5': '2021-12-21T12:12:45',
+                'column_6': {'id': 50, 'key1': 'A', 'key2': {'key2_2': None}},
+            },
+            {
+                'c_pk': 2,
+                'column_1': None,
+                'column_2': 'hidden',
+                'column_3': '2019-01-01T13:12:45',
+                'column_4': 4,
+                'column_5': '2021-12-21T13:12:45',
+                'column_6': {'id': 51, 'key1': 'B', 'key2': {'key2_1': 'ds'}},
+            },
+            {
+                'c_pk': 3,
+                'column_1': None,
+                'column_2': 'hidden',
+                'column_3': '2019-12-21T14:12:45',
+                'column_4': 15,
+                'column_5': '2021-12-21T14:12:45',
+                'column_6': {'id': 52, 'key1': 'C', 'key2': {'key2_1': 'xv43dgf', 'key2_2': None}},
+            },
+            {
+                'c_pk': 4,
+                'column_1': None,
+                'column_2': 'hidden',
+                'column_3': '2019-12-21T15:12:45',
+                'column_4': 1000,
+                'column_5': '2021-12-21T15:12:45',
+                'column_6': {'id': 53, 'key1': 'D', 'key2': {'key2_1': '43xvf', 'key2_2': None}},
+            },
+            {
+                'c_pk': 5,
+                'column_1': None,
+                'column_2': 'hidden',
+                'column_3': '2019-12-21T16:12:45',
+                'column_4': 0,
+                'column_5': '2021-12-21T16:12:45',
+                'column_6': {'id': 54, 'key1': 'E', 'key2': {'key2_1': 'trter', 'key2_3': False}},
+            },
+        ])

@@ -178,8 +178,6 @@ class TransformField:
         except Exception as exc:
             raise TransformFieldException('Failed to process incoming message: {}\n{}'.format(line, exc)) from exc
 
-        LOGGER.debug(message)
-
         # If we got a Schema, set the schema and key properties for this
         # stream. Flush the batch, if there is one, in case the schema is
         # different
