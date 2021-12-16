@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 2.3.0 (2021-12-16)
+### Added
+- Transformation of specific fields in object/array type properties in `RECORD` by using XPath syntax.
+- Conditions on specific fields in object/array type properties in `RECORD`.
+
 ## 2.2.0 (2021-09-17)
 ### Added
 - New transformation MASK-STRING-SKIP-ENDS-n. The transformation masks the string except start and end n-characters.
@@ -14,5 +19,5 @@
 
 ## 2.0.0 (2020-03-17)
 
-### changed
+### Changed
 - Stop trimming transformed values
