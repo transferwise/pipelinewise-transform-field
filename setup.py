@@ -23,7 +23,7 @@ setup(name='pipelinewise-transform-field',
       py_modules=['transform_field'],
       install_requires=[
           'pipelinewise-singer-python==1.*',
-          'dpath==2.0.*',
+          'dpath>=2.0,<2.2',
       ],
       extras_require={
           'test': [
