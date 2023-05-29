@@ -28,7 +28,7 @@ setup(name='pipelinewise-transform-field',
       extras_require={
           'test': [
               'pytest==6.2.*',
-              'pytest-cov==3.0.*',
+              'pytest-cov>=3.0,<4.2',
               'pylint==2.12.*',
           ]
       },
