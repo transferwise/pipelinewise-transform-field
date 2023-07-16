@@ -1,5 +1,6 @@
 import hashlib
 import re
+import json
 
 from typing import Dict, Any, Optional, List
 from dpath.util import get as get_xpath, set as set_xpath
@@ -42,7 +43,7 @@ def is_transform_required(record: Dict, when: Optional[List[Dict]]) -> bool:
                 # transformation so breaking prematurely
                 transform_required = False
 
-                LOGGER.debug('field "%s" doesn\'t exists in the value of column "%s", '
+                LOGGER.debug('field "%s" doesn\'t exist in the value of column "%s", '
                              'so transformation is not required.', field_path_to_match, column_to_match)
                 break
 
@@ -118,6 +119,8 @@ def do_transform(record: Dict,
     try:
         # Do transformation only if required
         if is_transform_required(record, when):
+            # Convert value to a JSON object (Dict)
+            value = json.loads(value)
 
             # transforming fields nested in value dictionary
             if isinstance(value, dict) and field_paths:
