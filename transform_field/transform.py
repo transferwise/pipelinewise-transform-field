@@ -132,7 +132,7 @@ def do_transform(record: Dict,
                     except KeyError:
                         LOGGER.error('Field path %s does not exist', field_path)
 
-                return_value = json.dumps(value)
+                return_value = value = json.dumps(value)
 
             else:
                 return_value = _transform_value(value, trans_type)
