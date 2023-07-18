@@ -119,10 +119,14 @@ def do_transform(record: Dict,
     try:
         # Do transformation only if required
         if is_transform_required(record, when):
-
-            # Convert value to a JSON object (Dict)
-            LOGGER.debug('Convert value in field %s to Dict ?', field)
-            value = json.loads(value)
+            temp_dict = False
+            # If the field has `field_paths` but is _not_ already JSON
+            # then do json.loads()/json.dumps()
+            if isinstance(value, str) and field_paths:
+                LOGGER.info('Convert value in field %s to Dict ?', field)
+                # Convert value to a JSON object (Dict)
+                value = json.loads(value)
+                temp_dict = True
 
             # transforming fields nested in value dictionary
             if isinstance(value, dict) and field_paths:
@@ -133,14 +137,18 @@ def do_transform(record: Dict,
                     except KeyError:
                         LOGGER.error('Field path %s does not exist', field_path)
 
-                return_value = value = json.dumps(value)
-                LOGGER.debug('Convert value in field %s to String after tranforms ?', field)
+                if temp_dict:
+                    return_value = value = json.dumps(value)
+                    LOGGER.info('Convert value in field %s to String after tranforms ?', field)
+                else:
+                    return_value = value
 
             else:
                 return_value = _transform_value(value, trans_type)
 
         # Return the original value if transformation is not required
         else:
+            LOGGER.info('Transform NOT required for %s', field)
             return_value = value
 
         return return_value
