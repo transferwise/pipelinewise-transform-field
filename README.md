@@ -1,3 +1,10 @@
+# Notice
+To better serve Wise business and customer needs, the PipelineWise codebase needs to shrink.
+We have made the difficult decision that, going forward many components of PipelineWise will be removed or incorporated in the main repo.
+The last version before this decision is [v0.64.1](https://github.com/transferwise/pipelinewise/tree/v0.64.1)
+
+We thank all in the open-source community, that over the past 6 years, have helped to make PipelineWise a robust product for heterogeneous replication of many many Terabytes, daily
+
 # pipelinewise-transform-field
 
 [![PyPI version](https://badge.fury.io/py/pipelinewise-transform-field.svg)](https://badge.fury.io/py/pipelinewise-transform-field)
@@ -10,7 +17,7 @@ This is a [PipelineWise](https://transferwise.github.io/pipelinewise) compatible
 
 ## How to use it
 
-The recommended method of running this component is to use it from [PipelineWise](https://transferwise.github.io/pipelinewise). When running it from PipelineWise you don't need to configure this tap with JSON files, and most of things are automated. 
+The recommended method of running this component is to use it from [PipelineWise](https://transferwise.github.io/pipelinewise). When running it from PipelineWise you don't need to configure this tap with JSON files, and most of things are automated.
 Please check the related documentation at [Transformations](https://transferwise.github.io/pipelinewise/user_guide/transformations.html)
 
 If you want to run this [Singer](https://singer.io) compatible component independently please read further.
@@ -69,7 +76,7 @@ _PS_: 1 =< n =< 9
 
 It is possible to transform a record's property based on some given condition(s), the transformation will only take place when all conditions are met.
 
-A condition is a combination of: 
+A condition is a combination of:
 * column [required]: the field to look up to
 * operation [required]: the comparison type to use, the supported ones are `equals` and `regex_match`.
 * value [required]: the column value to look for in records.
@@ -144,7 +151,7 @@ To apply transformation conditionally, you can make use of the property `when` w
 }
 ```
 
-**Sample config** 
+**Sample config**
 [config.json](./sample_config.json)
 
 (Tip: PipelineWise generating this for you from a more readable YAML format)
